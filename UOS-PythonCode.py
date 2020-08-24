@@ -5,6 +5,7 @@ Created on Fri Apr 12 16:40:04 2019
 
 @author: emanuel
 """
+import argparse
 from sklearn.cluster import DBSCAN
 from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
@@ -22,77 +23,13 @@ from sklearn.metrics import mean_squared_error
 from pandas.plotting import autocorrelation_plot
 from pykalman import KalmanFilter
 
+plot = False
+simulation_time = 0
+
 def get_cmap(n, name='hsv'):
     '''Returns a function that maps each index in 0, 1, ..., n-1 to a distinct 
     RGB color; the keyword argument name must be a standard mpl colormap name.'''
     return plt.cm.get_cmap(name, n)
-
-def read_file(filename, node_id, coord = "x"):
-    with open(filename) as f:
-        if coord == "x":
-            lines = [float(i.split()[5]) for i in f.readlines() if
-                     "node_({})".format(node_id) in i
-                    and "setdest" in i]
-        elif coord == "y":
-            lines = [float(i.split()[6]) for i in f.readlines() if
-                     "node_({})".format(node_id) in i
-                    and "setdest" in i]
-        else:
-            raise ValueError("invalid coordinate")
-        return lines
-    
-def arima():
-
-    mse = []
-
-    for i in range (100):
-        observations_x = read_file("scratch/UOS_UE_Scenario_5.ns_movements", i, "y")
-        print (len(observations_x))
-        
-
-        size = int(len(observations_x) * 0.26)
-        train, test = observations_x[0:size], observations_x[size:len(observations_x)]
-        history = [x for x in train]
-        predictions_x = []
-
-        for i, v in enumerate(test):
-            model = ARIMA(history, order=(5,1,0)) # ARIMA(p,d,q) --> find these values, if they fit for my use case.
-            model_fit = model.fit(disp=0)
-            output = model_fit.forecast()
-            # print(model_fit.summary())
-            yhat = output[0]
-            predictions_x.append(yhat)
-            obs = v
-            history.append(obs)
-
-        error = mean_squared_error(test, predictions_x)
-        # print('Test MSE: %.3f' % error)
-        mse.append(error)
-
-    return mse
-
-def kalman():
-    error = []
-    for i in range (100):
-        observations_x = read_file("scratch/UOS_UE_Scenario_5.ns_movements", i, "x")
-        observations_y = read_file("scratch/UOS_UE_Scenario_5.ns_movements", i, "y")
-
-        kf = KalmanFilter(transition_matrices=np.array([[1, 1], [0, 1]]),
-                          transition_covariance=0.01 * np.eye(2))
-        states_pred_x = kf.em(observations_x).smooth(observations_x)[0]
-        states_pred_y = kf.em(observations_y).smooth(observations_y)[0]
-
-        mse = sum((states_pred_x[:, 0] - observations_x)**2) / len(observations_x)
- 
-    return (states_pred_x[:,0], states_pred_y[:,0])
-        #error.append(mse)
-    #return error
-
-#Arima = arima()
-#print(Arima)
-#Kalman = kalman()
-#print(Kalman)
-
 
 def DBSCAN_Clusterization(X, EPS, MIN_SAMPLES):
     
@@ -112,17 +49,19 @@ def DBSCAN_Clusterization(X, EPS, MIN_SAMPLES):
     
     clusters = [X[DBClusters.labels_ == i] for i in range(n_clusters_)]
     outliers = X[DBClusters.labels_ == -1]
-    
-    # Plot Outliers
-#    plt.scatter(outliers[:,0], outliers[:,1], c="black", label="Outliers")
+
+    if plot:
+        plt.clf()
+        # Plot Outliers
+        plt.scatter(outliers[:,0], outliers[:,1], c="black", label="Outliers")
     
     
     # Plot Clusters
-#    cmap = get_cmap(len(clusters))
+    cmap = get_cmap(len(clusters))
     x_clusters = [None] * len(clusters)
     y_clusters = [None] * len(clusters)
     #colors = [0]
-#    colors = "bgrcmykw"
+    colors = "bgrcmykw"
     color_index = 0
     for i in range(len(clusters)):
         x_clusters[i] = []
@@ -133,20 +72,23 @@ def DBSCAN_Clusterization(X, EPS, MIN_SAMPLES):
             y_clusters[i].append(clusters[i][j][1])
             
     #        
+        if plot:
+            plt.scatter(x_clusters[i], y_clusters[i], label= "Cluster %d" %i,  s=8**2, c=colors[color_index]) #c=cmap(i)) 
+        if color_index == len(colors) - 1:
+            color_index = 0
+        else:
+            color_index += 1
         
-#        plt.scatter(x_clusters[i], y_clusters[i], label= "Cluster %d" %i,  s=8**2, c=colors[color_index]) #c=cmap(i)) 
-        color_index += 1
-        
-    
+    if plot:
     #plot the Clusters 
     #plt.title("Clusters Vs Serving UABS")
-#    plt.scatter(x2,y2,c="yellow", label= "UABSs", s=10**2) #plot UABS new position
-#    plt.xlabel('x (meters)', fontsize = 16)
-#    plt.ylabel('y (meters)', fontsize = 16)
-#    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
-#              fancybox=True, shadow=True, ncol=5)
-#    plt.savefig("Graph_Clustered_UOS_Scenario.pdf", format='pdf', dpi=1000)
-#    plt.show()      
+        plt.scatter(x2,y2,c="yellow", label= "UABSs", s=10**2) #plot UABS new position
+        plt.xlabel('x (meters)', fontsize = 16)
+        plt.ylabel('y (meters)', fontsize = 16)
+        plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
+                  fancybox=True, shadow=True, ncol=5)
+        plt.savefig("Graph_Clustered_UOS_Scenario {}s.pdf".format(simulation_time), format='pdf', dpi=1000)
+        plt.show()      
     
     return clusters, x_clusters, y_clusters  
 
@@ -231,7 +173,9 @@ def Reorder_Centroids(Centroids, SINRAvg, SINRAvgPrioritized):
 # KNN Implementation for finding the nearest UABS to the X Centroid.
 # Create the knn model.
 def nearest_UABS(UABSCoordinates, cellIds, Centroids):
-      Kneighbors = 2 
+      Kneighbors = 2
+      if len(cellIds) == 1:
+        Kneighbors = 1
       knn = KNeighborsClassifier(n_neighbors= Kneighbors, weights= "uniform" ,algorithm="auto")
       knn.fit(UABSCoordinates,cellIds)
       #predict witch UABS will be serving to the X Centroid.
@@ -241,6 +185,16 @@ def nearest_UABS(UABSCoordinates, cellIds, Centroids):
 #-----------------------------------Main---------------------------------------------------------------- 
 
 #-----------------------------------Import data files---------------------------------------------------#
+parser = argparse.ArgumentParser(description='UE clusterization script.')
+parser.add_argument('--eps-sinr', default=600,
+                    help='DBSCAN EPS parameter for sinr clusterization')
+parser.add_argument('--eps-qos', default=600,
+                    help='DBSCAN EPS parameter for qos clusterization')
+parser.add_argument('-p', '--plot', action='store_true',
+                    help='Plot clusters')
+args = parser.parse_args()
+plot = args.plot
+
 with open('enBs') as fenBs:
     data1 = np.array(list((float(x), float(y), float(z), int(cellid)) for x, y, z, cellid in csv.reader(fenBs, delimiter= ',')))
     
@@ -264,12 +218,19 @@ with open('UEs_UDP_Throughput') as fUE_QoS:
 
 #----------enBs--------------#
 x,y,z, cellid= data1.T
+if plot:
+    plt.gca().set_aspect('equal', adjustable='box')
+    plt.scatter(x,y,c="blue", label= "TBS", s=13**2)
 
 #----------Total LTE Users--------------#
 x1,y1,z1= data2.T
+if plot:
+    plt.scatter(x1,y1,c="gray", label= "UEs")
 
 #----------UABS--------------#
 x2,y2,z2, cellid3= data3.T
+if plot:
+    plt.scatter(x2,y2,c="yellow", label= "UAV-BS", s=9**2)
 UABSCoordinates = np.array(list(zip(x2,y2)))
 
 #----------Users with Low SINR--------------#
@@ -284,36 +245,48 @@ if (data4.size != 0):
 #----------QoS Parameters--------------#
 if (data6.size != 0):
     # Normalize throughput, delay and Packet Loss columns
-     data6[:,5] = preprocessing.normalize([data6[:,5]])
-     data6[:,6] = preprocessing.normalize([data6[:,6]])
-     data6[:,7] = preprocessing.normalize([data6[:,7]])
-     time_UE, UE_ID, x4, y4, z4, UE_Throughput, UE_Delay, UE_Packet_Loss = data6.T
+    data6[:,5] = preprocessing.normalize([data6[:,5]])
+    data6[:,6] = preprocessing.normalize([data6[:,6]])
+    data6[:,7] = preprocessing.normalize([data6[:,7]])
+    time_UE, UE_ID, x4, y4, z4, UE_Throughput, UE_Delay, UE_Packet_Loss = data6.T
 ## ----------------Here i have to just create a X Y pair with lowest throughput users.
-     X1 = np.array(list(zip(x4,y4)))
-    
+    X1 = np.array(list(zip(x4,y4)))
+    simulation_time = int(time_UE[0])
 
+if plot:
+    if len(x4) > 0:
+        plt.scatter(x4,y4,c="orange", label= "UEsLowQOS")
+    if len(x3) > 0:
+        plt.scatter(x3,y3,c="red", label= "UEsLowSINR")
+
+    plt.xlabel('x (meters)', fontsize = 16)
+    plt.ylabel('y (meters)', fontsize = 16)
+    plt.legend( loc='upper center',bbox_to_anchor=(0.5, 1.16),
+              fancybox=True, shadow=True, ncol=3)
+    plt.savefig("Graph_Initial_UOS_Scenario {}s.pdf".format(simulation_time), format='pdf', dpi=1000)
+    plt.show()
 
 #---------------Clustering with DBSCAN for Users with Low SINR---------------------
-eps_low_SINR=600
+eps_low_SINR=int(args.eps_sinr)
 min_samples_low_SINR=2
 if (data4.size != 0):
     clusters, x_clusters, y_clusters = DBSCAN_Clusterization(X, eps_low_SINR, min_samples_low_SINR)
 
 
 #---------------Clustering with DBSCAN for Users with Low Throughput---------------------
-eps_low_tp=600
+eps_low_tp=int(args.eps_qos)
 min_samples_low_tp=2
 if (data6.size != 0):
     clusters_QoS, x_clusters_QoS, y_clusters_QoS = DBSCAN_Clusterization(X1, eps_low_tp, min_samples_low_tp)
  
 
- #Sum of SINR and mean to later prioritize the clusters
+#Sum of SINR and mean to later prioritize the clusters
 SINRAvg = []
 Metric_Flag = 0
 if (data4.size != 0):
     SINRAvg= Sum_Avg_Parameter(clusters,x3, Metric_Flag)
+weight_SINR = 0.74 
 weight_SINR_Total = 0.0
-weight_SINR = 0.6 
 
 #Sum of Throughput and mean to later prioritize the clusters
 Metric_Flag = 1
@@ -333,11 +306,10 @@ if (data6.size != 0):
 
 #Calculate total weight of QoS Clustering
 if (data6.size != 0):
-    weight_QoS_Throughput = 0.4
-    weight_QoS_Delay = 0.3
-    weight_QoS_PLR = 0.3
+    weight_QoS_Throughput = 0.106
+    weight_QoS_Delay = 0.048
+    weight_QoS_PLR = 0.106
     weight_QoS_Total = 0.0
-    weight_QoS = 0.4
 
 #Weight of Throughput + Weight of Delay + Weight of PLR = 1
 
@@ -347,7 +319,8 @@ if (data6.size != 0):
 #    SINRAvg_norm = SINRAvg.copy()   
     for sinr in SINRAvg:
 #        SINRAvg_norm[i] = preprocessing.normalize(SINRAvg[i])
-        weight_SINR_Total += sinr*weight_SINR
+        weight_SINR_Total += sinr
+    weight_SINR_Total = weight_SINR_Total * weight_SINR
         
     #if (len(weight_SINR_Total) > len(weight_QoS_Total)):
     if (weight_SINR_Total > weight_QoS_Total):

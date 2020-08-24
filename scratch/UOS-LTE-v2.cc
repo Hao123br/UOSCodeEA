@@ -89,6 +89,7 @@
 #include <ns3/psc-module.h>
 #include "ns3/li-ion-energy-source.h"
 
+#include <unordered_map>
 #include <vector>
 #include "matriz.h"
 
@@ -101,16 +102,19 @@ using namespace ns3;
 using namespace psc; //to use PSC functions
 
 const uint16_t numberOfOverloadUENodes = 0; // user that will be connected to an specific enB. 
+const uint16_t numberOfSmallCellNodes = 8;
 uint16_t numberOfeNodeBNodes = 4;
 uint16_t numberOfUENodes = 100; //Number of user to test: 245, 392, 490 (The number of users and their traffic model follow the parameters recommended by the 3GPP)
 uint16_t numberOfUABS = 6;
 double simTime = 100; // 120 secs ||100 secs || 300 secs
 const int m_distance = 2000; //m_distance between enBs towers.
 bool disableDl = false;
-bool disableUl = false;
+bool disableUl = true;
+bool enablePrediction = true;
 int evalvidId = 0;
 int UDP_ID = 0;      
 int eNodeBTxPower = 46; //Set enodeB Power dBm 46dBm --> 20MHz  |  43dBm --> 5MHz
+int scTxPower = 23;
 int UABSTxPower = 0;//23;   //Set UABS Power
 uint8_t bandwidth_enb = 100; // 100 RB --> 20MHz  |  25 RB --> 5MHz
 uint8_t bandwidth_UABS = 100; // 100 RB --> 20MHz  |  25 RB --> 5MHz
@@ -119,22 +123,21 @@ matriz<double> ue_info; //UE Connection Status Register Matrix
 vector<double> ue_imsi_sinr; //UE Connection Status Register Matrix
 vector<double> ue_imsi_sinr_linear;
 vector<double> ue_info_cellid;
-vector<Ipv4Address> ue_IP_Address;
 int minSINR = 0; //  minimum SINR to be considered to clusterization
 string GetClusterCoordinates;
+bool smallCells = false;
 matriz<double> Arr_Througput; // [USUARIO ID][Valor de Throughput X]
 matriz<double> Arr_Delay; // [USUARIO ID][Valor de Delay X]
 matriz<double> Arr_PacketLoss; // [USUARIO ID][Valor de Packet Loss X]
-double PDR=0.0; //Packets Delay Rate
-double PLR=0.0; //Packets Lost Rate
-double APD=0.0;	//Average Packet Delay
-double Avg_Jitter=0.0;	//Average Packet Jitter
+std::unordered_map<uint32_t, uint16_t> ue_by_ip;
+vector<uint64_t> prev_rx_bytes;
 bool UABSFlag;
 bool UABS_On_Flag = false;
 vector<bool> UABS_Energy_ON; //Flag to indicate when to set energy mod (Batt) in UABS ON or OFF. 
 std::stringstream cmd;
-double UABSHeight = 80;
+double UABSHeight = 40;
 double enBHeight = 30;
+double scHeight = 5;
 int scen = 4; 
 // [Scenarios --> Scen[0]: General Scenario, with no UABS support, network ok;  Scen[1]: one enB damaged (off) and no UABS;
 // Scen[2]: one enB damaged (off) with supporting UABS; Scen[3]:Overloaded enB(s) with no UABS support; Scen[4]:Overloaded enB(s) with UABS support; ]
@@ -144,6 +147,8 @@ bool graphType = false; // If "true" generates all the graphs based in FlowsVSTh
 int remMode = 0; // [0]: REM disabled; [1]: generate REM at 1 second of simulation;
 //[2]: generate REM at simTime/2 seconds of simulation
 bool enableNetAnim = false;
+int eps_sinr = 600;
+int eps_qos = 600;
 std::stringstream Users_UABS; // To UEs cell id in every second of the simulation
 std::stringstream Qty_UABS; //To get the quantity of UABS used per RUNS
 std::stringstream uenodes_log;
@@ -163,26 +168,42 @@ double INITIAL_Batt_Voltage = 22.8; //https://www.genstattu.com/ta-10c-25000-6s1
 //std::string traceFile = "scratch/UOS_UE_Scenario_5.ns_movements";
 //std::string traceFile;
 
-Ptr<PacketSink> sink;                         /* Pointer to the packet sink application */
-vector<uint64_t> lastTotalRx;                     /* The value of the last total received bytes */
 NodeContainer ueNodes;
 
+std::vector<Vector> enb_positions {
+	Vector( 3000, 1000 , enBHeight),
+	Vector( 1000, 3000 , enBHeight),
+	Vector( 1000, 1000 , enBHeight),
+	Vector( 3000, 3000 , enBHeight)
+	};
 
-		NS_LOG_COMPONENT_DEFINE ("UOSLTE");
+std::vector<Vector> sc_positions {
+	Vector( 100, 100 , scHeight),  Vector( 100, 2000 , scHeight),  Vector( 100, 3900 , scHeight),
+
+	Vector( 2000, 100 , scHeight),/*Vector( 2000, 2000 , scHeight),*/Vector( 2000, 3900 , scHeight),
+
+	Vector( 3900, 100 , scHeight),  Vector( 3900, 2000 , scHeight),  Vector( 3900, 3900 , scHeight)
+	};
+
+NS_LOG_COMPONENT_DEFINE ("UOSLTE");
 
 std::string exec(const char* cmd);
 
 void alloc_arrays(){
-	ue_info.setDimensions (numberOfeNodeBNodes + numberOfUABS, numberOfUENodes);
+	if(smallCells) {
+		ue_info.setDimensions (numberOfeNodeBNodes + numberOfSmallCellNodes + numberOfUABS, numberOfUENodes);
+	} else {
+		ue_info.setDimensions (numberOfeNodeBNodes + numberOfUABS, numberOfUENodes);
+	}
 	ue_imsi_sinr.resize (numberOfUENodes);
 	ue_imsi_sinr_linear.resize (numberOfUENodes);
 	ue_info_cellid.resize (numberOfUENodes);
-	ue_IP_Address.resize (numberOfUENodes);
+	ue_by_ip.reserve(numberOfUENodes);
 	Arr_Througput.setDimensions (numberOfUENodes, 5, 0); // [USUARIO ID][Valor de Throughput X]
 	Arr_Delay.setDimensions (numberOfUENodes, 5, 0); // [USUARIO ID][Valor de Delay X]
 	Arr_PacketLoss.setDimensions (numberOfUENodes, 5, 0); // [USUARIO ID][Valor de Packet Loss X]
 	UABS_Energy_ON.assign (numberOfUABS, false); //Flag to indicate when to set energy mod (Batt) in UABS ON or OFF. 
-	lastTotalRx.assign (numberOfUENodes, 0);  /* The value of the last total received bytes */
+	prev_rx_bytes.assign (numberOfUENodes, 0);  /* The value of the last total received bytes */
 }
 
 		void RemainingEnergy (double oldValue, double remainingEnergy)
@@ -616,7 +637,7 @@ std::vector<Vector2D> do_predictions(){
 			std::vector<Vector2D> predicted_coords;
 			Vector2D coords;
 			
-			if(now >= 10){
+			if(enablePrediction && now >= 10){
 				predicted_coords = do_predictions();
 			}
 
@@ -632,7 +653,7 @@ std::vector<Vector2D> do_predictions(){
 					Ptr<MobilityModel> UEposition = object->GetObject<MobilityModel> ();
 					NS_ASSERT (UEposition != 0);
 					Vector pos = UEposition->GetPosition ();
-					if(now >= 10){
+					if(enablePrediction && now >= 10){
 						coords = predicted_coords[UEImsi-1];
 						UE << coords.x << "," << coords.y << "," << pos.z << "," << ue_imsi_sinr_linear[UEImsi-1] << ","<< UEImsi<< "," << ue_info_cellid[UEImsi-1]<< std::endl;
 					} else {
@@ -660,7 +681,7 @@ std::vector<Vector2D> do_predictions(){
 					Ptr<MobilityModel> UEposition = object->GetObject<MobilityModel> ();
 					NS_ASSERT (UEposition != 0);
 					Vector pos = UEposition->GetPosition ();
-					if(now >= 10){
+					if(enablePrediction && now >= 10){
 						coords = predicted_coords[UEOverloadImsi-1];
 						UE << coords.x << "," << coords.y << "," << pos.z << "," << ue_imsi_sinr_linear[UEOverloadImsi-1] << ","<< UEOverloadImsi<< "," << ue_info_cellid[UEOverloadImsi-1]<< std::endl;
 					} else {
@@ -847,7 +868,10 @@ std::vector<Vector2D> do_predictions(){
 			
 			// Call Python code to get string with clusters prioritized and trajectory optimized (Which UABS will serve which cluster).
 			cmd.str("");
-			cmd << "python3 " << ns3_dir << "/UOS-PythonCode.py " << " 2>/dev/null ";
+			cmd << "python3 " << ns3_dir << "/UOS-PythonCode.py";
+			cmd << " --eps-sinr " << eps_sinr;
+			cmd << " --eps-qos " << eps_qos;
+			cmd << " 2>>clusterization_errors.txt";
 			GetClusterCoordinates =  exec(cmd.str().c_str());
 			
 
@@ -893,6 +917,14 @@ std::vector<Vector2D> do_predictions(){
 		void ThroughputCalc(Ptr<FlowMonitor> monitor, Ptr<Ipv4FlowClassifier> classifier,Gnuplot2dDataset datasetThroughput,Gnuplot2dDataset datasetPDR,Gnuplot2dDataset datasetPLR, Gnuplot2dDataset datasetAPD)
 		{
 			static int tp_num = 0; //variable to count the number of throughput measurements
+			double PDR=0.0; //Packets Delay Rate
+			double PLR=0.0; //Packets Lost Rate
+			double APD=0.0; //Average Packet Delay
+			double Avg_Jitter=0.0; //Average Packet Jitter
+			double all_users_PDR=0.0;
+			double all_users_PLR=0.0;
+			double all_users_APD=0.0;
+			double all_users_APJ=0.0;
 			uint32_t txPacketsum = 0; 
 			uint32_t rxPacketsum = 0; 
 			uint32_t DropPacketsum = 0; 
@@ -900,8 +932,8 @@ std::vector<Vector2D> do_predictions(){
 			double Delaysum = 0; 
 			double Jittersum = 0;
 			double Throughput=0.0;
+			double totalThroughput=0.0;
 			Time now = Simulator::Now (); 
-			monitor->CheckForLostPackets ();
 			std::stringstream uenodes_TP;
 			uenodes_TP << "UEs_UDP_Throughput";    
 			std::ofstream UE_TP;
@@ -910,7 +942,7 @@ std::vector<Vector2D> do_predictions(){
 			if(tp_num == 4)
 			{
 				UE_TP.open(uenodes_TP.str());
-				if(now.GetSeconds() >= 10)
+				if(enablePrediction && now.GetSeconds() >= 10)
 					predicted_coords = do_predictions();
 			}
 			std::stringstream uenodes_TP_log;
@@ -920,10 +952,13 @@ std::vector<Vector2D> do_predictions(){
 			double Window_avg_Throughput[numberOfUENodes];
 			double Window_avg_Delay[numberOfUENodes];
 			double Window_avg_Packetloss[numberOfUENodes];
-			double Total_UE_TP_Avg = 0;
 			double Total_UE_Del_Avg = 0;
 			double Total_UE_PL_Avg = 0;
+			double sumTP = 0;
+			double sumDel = 0;
+			double sumPL = 0;
 
+			monitor->CheckForLostPackets ();
 			//Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon->GetClassifier ());
 			std::map<FlowId, FlowMonitor::FlowStats> stats = monitor->GetFlowStats ();
 
@@ -931,6 +966,11 @@ std::vector<Vector2D> do_predictions(){
 			{
 				Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (iter->first);
 
+				if(ue_by_ip.count(t.destinationAddress.Get()) == 0) { // to save just the download throughput (Server --> User)
+					continue; // skip this flow
+				}
+				uint16_t i = ue_by_ip[t.destinationAddress.Get()];
+				
 				txPacketsum += iter->second.txPackets;
 				rxPacketsum += iter->second.rxPackets;
 				LostPacketsum = txPacketsum-rxPacketsum;
@@ -941,114 +981,103 @@ std::vector<Vector2D> do_predictions(){
 				PDR = ((rxPacketsum * 100) / txPacketsum);
 				PLR = ((LostPacketsum * 100) / txPacketsum); //PLR = ((LostPacketsum * 100) / (txPacketsum));
 				APD = rxPacketsum ? (Delaysum / rxPacketsum) : 0; // APD = (Delaysum / txPacketsum); //to check
-				Avg_Jitter = (Jittersum / rxPacketsum);
+				Avg_Jitter = rxPacketsum ? (Jittersum / rxPacketsum) : 0;
+				Throughput = ((iter->second.rxBytes - prev_rx_bytes[i]) * 8.0 ) / 1024;// / 1024;
+				prev_rx_bytes[i] = iter->second.rxBytes;
+
+				//std::cout << "Node "<< i <<" Source Address: "<< t.sourceAddress << " Dest Address: "<< t.destinationAddress << " FM_Throughput: "<<  Throughput << " Kbps"<< std::endl;
 				
-				for (uint16_t i = 0; i < ueNodes.GetN() ; i++)
+				Arr_Througput[i][tp_num] = Throughput;
+				Arr_Delay[i][tp_num] = APD;
+				Arr_PacketLoss[i][tp_num] = PLR;
+
+				if (tp_num == 4) //schedule every 4 seconds. This is because we calculate the throughput in a windows of 5 positions to find average throughput of every user.
 				{
-					double sumTP = 0;
-					double sumDel = 0;
-					double sumPL = 0;
-
-					if (ue_IP_Address[i] == t.destinationAddress) // to save just to download throughput (Server --> User)
+					double sumThroughput = 0;
+					double sumDelay = 0;
+					double sumPacketloss = 0;
+					for (uint16_t j = 0; j < 5 ; j++) 
 					{
-						//std::cout << "Node "<< i <<" Source Address: "<< t.sourceAddress << " Dest Address: "<< t.destinationAddress << " FM_Throughput: "<<  Throughput << " Kbps"<< std::endl;
-						
-						Arr_Througput[i][tp_num] = Throughput;
-						Arr_Delay[i][tp_num] = APD;
-						Arr_PacketLoss[i][tp_num] = PLR;
-
-						if (tp_num == 4) //schedule every 4 seconds. This is because we calculate the throughput in a windows of 5 positions to find average throughput of every user.
-						{
-							for (uint16_t i = 0; i < ueNodes.GetN() ; i++)
-							{
-								double sumThroughput = 0;
-								double sumDelay = 0;
-								double sumPacketloss = 0;
-								for (uint16_t j = 0; j < 5 ; j++) 
-								{
-									sumThroughput += Arr_Througput[i][j]; //sum all the throughputs
-									sumDelay += Arr_Delay[i][j]; //sum all the Delay 
-									sumPacketloss += Arr_PacketLoss[i][j]; //sum all the Packetloss  
-									
-								}
-								Window_avg_Throughput[i] = sumThroughput / 5; //get the average of the 5 UE throughput measurements
-								sumTP += Window_avg_Throughput[i]; // here we sum all the throughputs.
-								Window_avg_Delay[i] = sumDelay / 5; //get the average of the 5 UE Delay measurements
-								sumDel += Window_avg_Delay[i]; // here we sum all the Delay.
-								Window_avg_Packetloss[i] = sumPacketloss / 5; //get the average of the 5 UE Packetloss measurements
-								sumPL += Window_avg_Packetloss[i]; // here we sum all the Packetloss.
-							}
-							//std::cout << "Avg_Througput["<<i<<"] = "<< Window_avg_Throughput[i] << " Kbps"<<std::endl;
-							if (i == (ueNodes.GetN()-1))
-							{	
-								Total_UE_TP_Avg = sumTP / numberOfUENodes;
-								//std::cout << now.GetSeconds () << "s Total Throughput Average: "<< Total_UE_TP_Avg << std::endl;
-								Total_UE_Del_Avg = sumDel / numberOfUENodes;
-								//std::cout << now.GetSeconds () << "s Total Delay Average: "<< Total_UE_Del_Avg << std::endl;
-
-								//std::cout << now.GetSeconds () << "s 1 / Total Delay Average: "<< 1 / Total_UE_Del_Avg << std::endl;
-								
-								Total_UE_PL_Avg = sumPL / numberOfUENodes;
-								//std::cout << now.GetSeconds () << "s Total Packet Loss Average: "<< Total_UE_PL_Avg << std::endl;
-
-								//std::cout << now.GetSeconds () << "s 1 / Total Packet Loss Average: "<< 1 / Total_UE_PL_Avg << std::endl;
-							
-								for (uint16_t i = 0; i < ueNodes.GetN() ; i++)
-								{
-									Ptr<MobilityModel> UEposition = ueNodes.Get(i)->GetObject<MobilityModel> ();
-									NS_ASSERT (UEposition != 0);
-									Vector pos = UEposition->GetPosition ();
-								
-									//if ( (Window_avg_Throughput[i] < Total_UE_TP_Avg || Window_avg_Delay[i] > Total_UE_Del_Avg || Window_avg_Packetloss[i] >= Total_UE_PL_Avg )) // puede analizar poniendo que si esta por encima de 50% de perdida de paquetes lo coloco en la lista.
-									if ( ( Window_avg_Delay[i] > Total_UE_Del_Avg) || (Window_avg_Packetloss[i] > Total_UE_PL_Avg)) // //|| Window_avg_Packetloss[i] >= Total_UE_PL_Avg )) // puede analizar poniendo que si esta por encima de 50% de perdida de paquetes lo coloco en la lista.
-									{
-										 // NS_LOG_UNCOND("Compare UE_TP vs Avg TP: "<< std::to_string(Window_avg_Throughput[i]) << " < " << std::to_string(Total_UE_TP_Avg));
-										// NS_LOG_UNCOND("Compare UE_Del vs Avg Delay: "<< std::to_string(Window_avg_Delay[i]) << " > " << std::to_string(Total_UE_Del_Avg));
-										// NS_LOG_UNCOND("Compare UE_PL vs Avg PL: "<< std::to_string(Window_avg_Packetloss[i]) << " >= " << std::to_string(Total_UE_PL_Avg));
-										if(now.GetSeconds() >= 10){
-											coords = predicted_coords[i];
-											UE_TP << now.GetSeconds () << "," << i << "," << coords.x << "," << coords.y << "," << pos.z << "," << Window_avg_Throughput[i] << "," << (Window_avg_Delay[i] ? (1 / Window_avg_Delay[i]) : 0) << "," << (Window_avg_Packetloss[i] ? (1 / Window_avg_Packetloss[i]) : 0) << std::endl;
-											UE_TP_Log << now.GetSeconds () << "," << i << "," << coords.x << "," << coords.y << "," << pos.z << "," << Window_avg_Throughput[i] << "," << (Window_avg_Delay[i] ? (1 / Window_avg_Delay[i]) : 0) << "," << (Window_avg_Packetloss[i] ? (1 / Window_avg_Packetloss[i]) : 0) << std::endl;
-
-										} else {
-											UE_TP << now.GetSeconds () << "," << i << "," << pos.x << "," << pos.y << "," << pos.z << "," << Window_avg_Throughput[i] << "," << (Window_avg_Delay[i] ? (1 / Window_avg_Delay[i]) : 0) << "," << (Window_avg_Packetloss[i] ? (1 / Window_avg_Packetloss[i]) : 0) << std::endl;
-							
-											UE_TP_Log << now.GetSeconds () << "," << i << "," << pos.x << "," << pos.y << "," << pos.z << "," << Window_avg_Throughput[i] << "," << (Window_avg_Delay[i] ? (1 / Window_avg_Delay[i]) : 0) << "," << (Window_avg_Packetloss[i] ? (1 / Window_avg_Packetloss[i]) : 0) << std::endl;
-										}
-									}
-								}
-						    }
-						}
+						sumThroughput += Arr_Througput[i][j]; //sum all the throughputs
+						sumDelay += Arr_Delay[i][j]; //sum all the Delay 
+						sumPacketloss += Arr_PacketLoss[i][j]; //sum all the Packetloss  
 					}
+					Window_avg_Throughput[i] = sumThroughput / 5; //get the average of the 5 UE throughput measurements
+					sumTP += Window_avg_Throughput[i]; // here we sum all the throughputs.
+					Window_avg_Delay[i] = sumDelay / 5; //get the average of the 5 UE Delay measurements
+					sumDel += Window_avg_Delay[i]; // here we sum all the Delay.
+					Window_avg_Packetloss[i] = sumPacketloss / 5; //get the average of the 5 UE Packetloss measurements
+					sumPL += Window_avg_Packetloss[i]; // here we sum all the Packetloss.
+					//std::cout << "Avg_Througput["<<i<<"] = "<< Window_avg_Throughput[i] << " Kbps"<<std::endl;
 				}
 				
-				
 				// Save in datasets to later plot the results. If graphtype is True, plots will be based in Flows, if False will be based in time (seconds)
-				if (graphType == true){
-					Throughput = ((iter->second.rxBytes * 8.0) /(iter->second.timeLastRxPacket.GetSeconds()-iter->second.timeFirstTxPacket.GetSeconds()))/ 1024;// / 1024;
+				if (graphType == true)
+				{
 					datasetThroughput.Add((double)iter->first,(double) Throughput);
 					datasetPDR.Add((double)iter->first,(double) PDR);
 					datasetPLR.Add((double)iter->first,(double) PLR);
 					datasetAPD.Add((double)iter->first,(double) APD);
 					datasetAvg_Jitter.Add((double)iter->first,(double) Avg_Jitter);
 				} else {
-					Throughput += ((iter->second.rxBytes * 8.0) /(iter->second.timeLastRxPacket.GetSeconds()-iter->second.timeFirstTxPacket.GetSeconds()))/ 1024;// / 1024;
+					totalThroughput += Throughput;
+					all_users_PDR += PDR;
+					all_users_PLR += PLR;
+					all_users_APD += APD;
+					all_users_APJ += Avg_Jitter;
 				}
 			}
+
 			if (graphType == false)
 			{
-				datasetThroughput.Add((double)Simulator::Now().GetSeconds(),(double) Throughput);
-				datasetPDR.Add((double)Simulator::Now().GetSeconds(),(double) PDR);
-				datasetPLR.Add((double)Simulator::Now().GetSeconds(),(double) PLR);
-				datasetAPD.Add((double)Simulator::Now().GetSeconds(),(double) APD);
-				datasetAvg_Jitter.Add((double)Simulator::Now().GetSeconds(),(double) Avg_Jitter);
+				all_users_PDR = all_users_PDR / numberOfUENodes;
+				all_users_PLR = all_users_PLR / numberOfUENodes;
+				all_users_APD = all_users_APD / numberOfUENodes;
+				all_users_APJ = all_users_APJ / numberOfUENodes;
+				datasetThroughput.Add((double)Simulator::Now().GetSeconds(),(double) totalThroughput);
+				datasetPDR.Add((double)Simulator::Now().GetSeconds(),(double) all_users_PDR);
+				datasetPLR.Add((double)Simulator::Now().GetSeconds(),(double) all_users_PLR);
+				datasetAPD.Add((double)Simulator::Now().GetSeconds(),(double) all_users_APD);
+				datasetAvg_Jitter.Add((double)Simulator::Now().GetSeconds(),(double) all_users_APJ);
 			}
 			
 			if (tp_num == 4)
 			{
+				Total_UE_Del_Avg = sumDel / numberOfUENodes;
+				//std::cout << now.GetSeconds () << "s Total Delay Average: "<< Total_UE_Del_Avg << std::endl;
+
+				//std::cout << now.GetSeconds () << "s 1 / Total Delay Average: "<< 1 / Total_UE_Del_Avg << std::endl;
+				
+				Total_UE_PL_Avg = sumPL / numberOfUENodes;
+				//std::cout << now.GetSeconds () << "s Total Packet Loss Average: "<< Total_UE_PL_Avg << std::endl;
+
+				//std::cout << now.GetSeconds () << "s 1 / Total Packet Loss Average: "<< 1 / Total_UE_PL_Avg << std::endl;
+				
+				for (uint16_t i = 0; i < ueNodes.GetN() ; i++)
+				{
+					Ptr<MobilityModel> UEposition = ueNodes.Get(i)->GetObject<MobilityModel> ();
+					NS_ASSERT (UEposition != 0);
+					Vector pos = UEposition->GetPosition ();
+					
+					if ( ( Window_avg_Delay[i] > Total_UE_Del_Avg * 1.1) || ((100 - Window_avg_Packetloss[i]) < (100 - Total_UE_PL_Avg) * 0.95)) // //|| Window_avg_Packetloss[i] >= Total_UE_PL_Avg )) // puede analizar poniendo que si esta por encima de 50% de perdida de paquetes lo coloco en la lista.
+					{
+						// NS_LOG_UNCOND("Compare UE_Del vs Avg Delay: "<< std::to_string(Window_avg_Delay[i]) << " > " << std::to_string(Total_UE_Del_Avg));
+						// NS_LOG_UNCOND("Compare UE_PL vs Avg PL: "<< std::to_string(Window_avg_Packetloss[i]) << " >= " << std::to_string(Total_UE_PL_Avg));
+						if(enablePrediction && now.GetSeconds() >= 10)
+						{
+							coords = predicted_coords[i];
+							UE_TP << now.GetSeconds () << "," << i << "," << coords.x << "," << coords.y << "," << pos.z << "," << Window_avg_Throughput[i] << "," << (Window_avg_Delay[i] ? (1 / Window_avg_Delay[i]) : 0) << "," << (Window_avg_Packetloss[i] ? (1 / Window_avg_Packetloss[i]) : 0) << std::endl;
+							UE_TP_Log << now.GetSeconds () << "," << i << "," << coords.x << "," << coords.y << "," << pos.z << "," << Window_avg_Throughput[i] << "," << (Window_avg_Delay[i] ? (1 / Window_avg_Delay[i]) : 0) << "," << (Window_avg_Packetloss[i] ? (1 / Window_avg_Packetloss[i]) : 0) << std::endl;
+						} else {
+							UE_TP << now.GetSeconds () << "," << i << "," << pos.x << "," << pos.y << "," << pos.z << "," << Window_avg_Throughput[i] << "," << (Window_avg_Delay[i] ? (1 / Window_avg_Delay[i]) : 0) << "," << (Window_avg_Packetloss[i] ? (1 / Window_avg_Packetloss[i]) : 0) << std::endl;
+						
+							UE_TP_Log << now.GetSeconds () << "," << i << "," << pos.x << "," << pos.y << "," << pos.z << "," << Window_avg_Throughput[i] << "," << (Window_avg_Delay[i] ? (1 / Window_avg_Delay[i]) : 0) << "," << (Window_avg_Packetloss[i] ? (1 / Window_avg_Packetloss[i]) : 0) << std::endl;
+						}
+					}
+				}
 				tp_num = 0;
 				UE_TP.close();
-			}	
+			}
 			else tp_num++;
 			
 			//monitor->SerializeToXmlFile("UOSLTE-FlowMonitor.xml",true,true);
@@ -1149,21 +1178,17 @@ std::vector<Vector2D> do_predictions(){
 		  
 			ApplicationContainer serverApps;
 			ApplicationContainer clientApps;
-			Time interPacketInterval = MilliSeconds (50);
+			Time interPacketInterval = MilliSeconds (25);
 			uint16_t dlPort = 1100;
 			uint16_t ulPort = 2000;
 			  
 			// Ptr<UniformRandomVariable> startTimeSeconds = CreateObject<UniformRandomVariable> ();
-	  //  		startTimeSeconds->SetAttribute ("Min", DoubleValue (0));
-	  //  		startTimeSeconds->SetAttribute ("Max", DoubleValue (interPacketInterval/1000.0));
+			// startTimeSeconds->SetAttribute ("Min", DoubleValue (0));
+			// startTimeSeconds->SetAttribute ("Max", DoubleValue (interPacketInterval/1000.0));
 
 
-		  for (uint32_t u = 0; u < ueNodes.GetN (); ++u)
-		  {
-		  	
-		  	
-	    	// int startTime = rand() % (int)simTime + 2;
-			int startTime = rand() % (int)4 + 2;
+			for (uint32_t u = 0; u < ueNodes.GetN (); ++u)
+			{
 			ulPort++;
 			
 		       if (!disableDl)
@@ -1190,15 +1215,9 @@ std::vector<Vector2D> do_predictions(){
 		          //ulClient.SetAttribute ("PacketSize", UintegerValue (1024));
 		          clientApps.Add (ulClient.Install (ueNodes.Get(u)));
 		         }
-			  serverApps.Start (Seconds(1));
-			  //clientApps.Start (Seconds(startTime));
-			  clientApps.Start (Seconds(startTime));
-
-		   }
-
-		  		
-		  		//Simulator::Schedule (Seconds (1), &CalculateThroughput,ueNodes,clientApps);
-
+			}
+			serverApps.Start (Seconds(1));
+			clientApps.Start (Seconds(2));
 		}
 
 		void UDPApp2 (Ptr<Node> remoteHost, NodeContainer ueNodes, Ipv4Address remoteHostAddr, Ipv4InterfaceContainer ueIpIface)
@@ -1430,6 +1449,63 @@ bool IsTopLevelSourceDir (std::string path)
 	return haveVersion && haveLicense;
 }
 
+void setup_uav_mobility(NodeContainer &uavs){
+	uint16_t uavN = uavs.GetN();
+	uint16_t start = 0;
+	uint16_t end = 0;
+	double distance_from_enbx = 50;
+	double distance_from_enby = 50;
+	uint8_t uav_per_enb;
+	uint8_t cols, rows;
+	double deltax, deltay;
+	Vector enbPos;
+
+	MobilityHelper mobilityUABS;
+	mobilityUABS.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");
+
+	ObjectFactory posAllocFactory;
+	posAllocFactory.SetTypeId(GridPositionAllocator::GetTypeId());
+
+	for(int i=0; i<numberOfeNodeBNodes; ++i) {
+		end += uavN/numberOfeNodeBNodes;
+		if(i < uavN%numberOfeNodeBNodes) {
+			end++;
+		}
+		
+		uav_per_enb = end - start;
+		cols = (uint8_t) std::ceil(std::sqrt(uav_per_enb));
+		rows = (uint8_t) std::ceil((float) uav_per_enb / cols);
+		
+		if(cols==1) {
+			deltax = 0;
+			distance_from_enbx = 0;
+		} else {
+			deltax = (distance_from_enbx * 2) / (cols - 1);
+		}
+	
+		if(rows==1) {
+			deltay = 0;
+			distance_from_enby = 0;
+		} else {
+			deltay = (distance_from_enby * 2) / (rows - 1);
+		}
+	
+		enbPos = enb_positions[i];
+		posAllocFactory.Set("GridWidth", UintegerValue(cols));
+		posAllocFactory.Set("DeltaX", DoubleValue(deltax));
+		posAllocFactory.Set("DeltaY", DoubleValue(deltay));
+		posAllocFactory.Set("MinX", DoubleValue(enbPos.x - distance_from_enbx));
+		posAllocFactory.Set("MinY", DoubleValue(enbPos.y - distance_from_enby));
+		posAllocFactory.Set("Z", DoubleValue(enbPos.z));
+		mobilityUABS.SetPositionAllocator(posAllocFactory.Create<GridPositionAllocator>());
+
+		for(unsigned int j=start; j<end; j++){
+			mobilityUABS.Install(uavs.Get(j));
+		}
+		start = end;
+	}
+}
+
 std::string GetTopLevelSourceDir (void)
 {
 	std::string self = SystemPath::FindSelfDirectory ();
@@ -1473,6 +1549,10 @@ std::string GetTopLevelSourceDir (void)
     	cmm.AddValue("remMode","Radio environment map mode",remMode);
 		cmm.AddValue("enableNetAnim","Generate NetAnim XML",enableNetAnim);
 		cmm.AddValue("phyTraces","Generate lte phy traces", phyTraces);
+		cmm.AddValue("enableSCs","Enable smallCells", smallCells);
+		cmm.AddValue("enablePrediction", "Enable user movement prediction", enablePrediction);
+		cmm.AddValue("epsSINR", "EPS parameter for sinr clusterization", eps_sinr);
+		cmm.AddValue("epsQOS", "EPS parameter for qos clusterization", eps_qos);
     	cmm.Parse(argc, argv);
 		
 		SeedManager::SetSeed (randomSeed);
@@ -1489,9 +1569,11 @@ std::string GetTopLevelSourceDir (void)
 			
 				UE_UABS.open(Users_UABS.str());
 				UABS_Qty.open(Qty_UABS.str());
-				//Open file for writing and overwrite if it already exists
-				ues_position.open("ues_position.txt", std::ofstream::out | std::ofstream::trunc);
-				ues_position << numberOfUENodes << std::endl;
+				if(enablePrediction){
+					//Open file for writing and overwrite if it already exists
+					ues_position.open("ues_position.txt", std::ofstream::out | std::ofstream::trunc);
+					ues_position << numberOfUENodes << std::endl;
+				}
 
 				//traceFile = "scratch/UOS_UE_Scenario_"+std::to_string(z)+".ns_movements";
 				//NS_LOG_UNCOND(traceFile);
@@ -1596,7 +1678,12 @@ std::string GetTopLevelSourceDir (void)
 		//------------//
 		NodeContainer enbNodes;
 		enbNodes.Create(numberOfeNodeBNodes);
-		
+
+		NodeContainer scNodes;
+		if(smallCells) {
+			scNodes.Create(numberOfSmallCellNodes);
+		}
+
 		NodeContainer UABSNodes;
 		if (scen == 2 || scen == 4)
 		{
@@ -1672,16 +1759,24 @@ std::string GetTopLevelSourceDir (void)
 		// }  }
 
 		Ptr<ListPositionAllocator> positionAlloc2 = CreateObject<ListPositionAllocator> ();
-		positionAlloc2->Add (Vector( 1000, 1000 , enBHeight));
-		positionAlloc2->Add (Vector( 3000, 1000 , enBHeight));
-		positionAlloc2->Add (Vector( 1000, 3000 , enBHeight));
-		positionAlloc2->Add (Vector( 3000, 3000 , enBHeight));
-
+		for(Vector pos : enb_positions) {
+			positionAlloc2->Add (pos);
+		}
 		MobilityHelper mobilityenB;
 		mobilityenB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
 		mobilityenB.SetPositionAllocator(positionAlloc2);
 		mobilityenB.Install(enbNodes);
 		BuildingsHelper::Install (enbNodes);
+
+		Ptr<ListPositionAllocator> positionAllocSC = CreateObject<ListPositionAllocator> ();
+		for(Vector pos : sc_positions) {
+			positionAllocSC->Add (pos);
+		}
+		MobilityHelper mobilitySC;
+		mobilitySC.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+		mobilitySC.SetPositionAllocator(positionAllocSC);
+		mobilitySC.Install(scNodes);
+		BuildingsHelper::Install (scNodes);
 		
 		
 		//---------------Set Power of eNodeBs------------------//  
@@ -1716,6 +1811,8 @@ std::string GetTopLevelSourceDir (void)
 		// ------------------- Install LTE Devices to the nodes --------------------------------//
 		NetDeviceContainer enbLteDevs = lteHelper->InstallEnbDevice (enbNodes);
 
+		Config::SetDefault ("ns3::LteEnbPhy::TxPower", DoubleValue (scTxPower));
+		NetDeviceContainer scLteDevs = lteHelper->InstallEnbDevice (scNodes);
 
 		NS_LOG_UNCOND("Installing Mobility Model in UEs...");
 
@@ -1784,37 +1881,9 @@ std::string GetTopLevelSourceDir (void)
 		{
 			NS_LOG_UNCOND("Installing Mobility Model in UABSs...");
 			// ----------------Install Mobility Model UABS--------------------//
-
-			Ptr<ListPositionAllocator> positionAllocUABS = CreateObject<ListPositionAllocator> ();
-			positionAllocUABS->Add (Vector( 950, 950 , enBHeight)); //1
-			positionAllocUABS->Add (Vector( 3050, 950 , enBHeight)); //2
-			positionAllocUABS->Add (Vector( 950, 3050 , enBHeight)); //3
-			positionAllocUABS->Add (Vector( 3050, 3050 , enBHeight)); //4
-			positionAllocUABS->Add (Vector( 1050, 1050 , enBHeight)); //5
-			positionAllocUABS->Add (Vector( 2950, 1050 , enBHeight)); //6
-			positionAllocUABS->Add (Vector( 1050, 2950 , enBHeight)); //7
-			positionAllocUABS->Add (Vector( 2950, 2950 , enBHeight)); //8
-			// have to add as many os UABS will be used in the simulation, in this example there are 8 UABS available 
-
-			MobilityHelper mobilityUABS;
-			mobilityUABS.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");
-			//mobilityUABS.SetMobilityModel ("ns3::RandomWalk2dMobilityModel", 
-			//                         "Mode", StringValue ("Time"),
-			  //                       "Time", StringValue ("5s"),
-									 //"Speed", StringValue ("ns3::ConstantRandomVariable[Constant=1.0]"),
-				//                     "Speed", StringValue ("ns3::UniformRandomVariable[Min=2.0|Max=4.0]"),
-				//		     "Bounds", StringValue ("0|2000|0|2000"));
-			mobilityUABS.SetPositionAllocator(positionAllocUABS);
-			// mobilityUABS.SetPositionAllocator ("ns3::GridPositionAllocator",
-			// 								"MinX", DoubleValue (0.0),
-			// 								"MinY", DoubleValue (0.0),
-			// 								"DeltaX", DoubleValue (m_distance),
-			// 								"DeltaY", DoubleValue (m_distance),
-			// 								"GridWidth", UintegerValue (3),
-			// 								"LayoutType", StringValue ("RowFirst"));
-
-			mobilityUABS.Install(UABSNodes);
+			setup_uav_mobility(UABSNodes);
 			BuildingsHelper::Install (UABSNodes);
+
 			UABSTxPower = 0;
 			Config::SetDefault ("ns3::LteEnbPhy::TxPower", DoubleValue (UABSTxPower));
 			Config::SetDefault( "ns3::LteEnbPhy::NoiseFigure", DoubleValue(5) );    // Default 5
@@ -1873,7 +1942,7 @@ std::string GetTopLevelSourceDir (void)
 		if(scen != 0)
 		{
 		// ---------------Get position of enBs, UABSs and UEs. -------------------//
-		Simulator::Schedule(Seconds(5), &GetPositionUEandenB,enbNodes,UABSNodes,enbLteDevs,UABSLteDevs,ueOverloadNodes,ueLteDevs);
+		Simulator::Schedule(Seconds(5), &GetPositionUEandenB, NodeContainer(enbNodes, scNodes),UABSNodes, NetDeviceContainer(enbLteDevs, scLteDevs), UABSLteDevs,ueOverloadNodes,ueLteDevs);
 		}
 
 
@@ -1899,6 +1968,7 @@ std::string GetTopLevelSourceDir (void)
 	  // ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueLteDevs));
 	  
 	  // Assign IP address to UEs, and install applications
+	  Ipv4Address ue_IP_Address;
 	  for (uint16_t i = 0; i < ueNodes.GetN(); i++) 
 	  {
 		Ptr<Node> ueNode = ueNodes.Get(i);
@@ -1907,7 +1977,8 @@ std::string GetTopLevelSourceDir (void)
 			Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNode->GetObject<Ipv4> ());
 			ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
 			
-			ue_IP_Address[i] = ueNode->GetObject<Ipv4>()->GetAddress(1,0).GetLocal();
+			ue_IP_Address = ueNode->GetObject<Ipv4>()->GetAddress(1,0).GetLocal();
+			ue_by_ip[ue_IP_Address.Get()] = i;
 			//std::cout << "Node " << i << " "<< ue_IP_Address[i] <<std::endl;
 			//std::cout << "Node " << i << " "<<ueNode->GetObject<Ipv4>()->GetAddress(1,0).GetLocal() <<std::endl;
 	  }
@@ -1935,22 +2006,28 @@ std::string GetTopLevelSourceDir (void)
 		lteHelper->Attach (ueLteDevs);
 		lteHelper->Attach(OverloadingUeLteDevs);
 		
-		if (scen == 2 || scen == 4)
-		{
-			//Set X2 interfaces between all UABS and enBs to enable handover.
-			lteHelper->AddX2Interface (NodeContainer (enbNodes, UABSNodes));
-		} else {
-			// this enables handover for macro eNBs
-			lteHelper->AddX2Interface (enbNodes); // X2 interface for macrocells
+		NodeContainer baseStationNodes;
+		baseStationNodes.Add(enbNodes);
+
+		if(smallCells) {
+			baseStationNodes.Add(scNodes);
 		}
 
+		if(scen == 2 || scen == 4){
+			baseStationNodes.Add(UABSNodes);
+		}
+
+		//Set a X2 interface between UABS and all enBs to enable handover.
+		lteHelper->AddX2Interface (baseStationNodes);
 		
 		// -----------------------Activate EPSBEARER---------------------------//
 		//lteHelper->ActivateDedicatedEpsBearer (ueLteDevs, EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT), EpcTft::Default ());
 		lteHelper->ActivateDedicatedEpsBearer (ueLteDevs, EpsBearer (EpsBearer::NGBR_VOICE_VIDEO_GAMING), EpcTft::Default ());
- 
-		for(unsigned int i = 1; i <= 5; ++i){
-			Simulator::Schedule(Seconds(i), &save_ues_position, ueNodes, &ues_position);
+
+		if(enablePrediction){
+			for(unsigned int i = 1; i <= 5; ++i){
+				Simulator::Schedule(Seconds(i), &save_ues_position, ueNodes, &ues_position);
+			}
 		}
 	  	//------------------------Get Sinr-------------------------------------//
 	  	if(scen != 0)
@@ -2015,6 +2092,12 @@ std::string GetTopLevelSourceDir (void)
 				anim->UpdateNodeColor(enbNodes.Get(i), 0, 255, 0);
 				anim->UpdateNodeSize(enbNodes.Get(i)->GetId(),300,300); // to change the node size in the animation.
 			}
+			for (uint32_t i = 0; i < scNodes.GetN(); ++i)
+			{
+				anim->UpdateNodeDescription(scNodes.Get(i), "SmallCells");
+				anim->UpdateNodeColor(scNodes.Get(i), 255, 255, 0);
+				anim->UpdateNodeSize(scNodes.Get(i)->GetId(),200,200); // to change the node size in the animation.
+			}
 			for (uint32_t i = 0; i < ueNodes.GetN(); ++i) 
 			{
 				anim->UpdateNodeDescription(ueNodes.Get(i), "UEs");
@@ -2044,10 +2127,10 @@ std::string GetTopLevelSourceDir (void)
 	 
 		//lteHelper->EnableTraces (); Set the traces on or off. 
 	  
+		lteHelper->EnableUlPhyTraces(); //This enables sinr reporting
 		if(phyTraces){
 			//Enabling Traces
 			lteHelper->EnablePhyTraces();
-			lteHelper->EnableUlPhyTraces();
 			lteHelper->EnableMacTraces();
 			lteHelper->EnableRlcTraces();
 			lteHelper->EnablePdcpTraces();
