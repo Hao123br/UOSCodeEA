@@ -493,7 +493,7 @@ ax2.legend(handles=[LTE_Label, UOS_Label, PERCEPT_Label])
 #4 UAV-BS
 ax3.bar(np.arange(1),means_LTE_200, yerr=yerr_LTE_200 ,width =0.6, color= uniquefuckingcolors[0], align="center", error_kw=dict(lw=2, capsize=5, capthick=2),label="LTE")
 ax3.bar(np.arange(1)+0.6,means_UOS_200_4, yerr=yerr_UOS_200_4 ,width =0.6, color= uniquefuckingcolors[1], align="center", error_kw=dict(lw=2, capsize=5, capthick=2), label="LTE+UOS")
-ax3.bar(np.arange(1)+1.2,means_Percept_100_4, yerr=yerr_Percept_100_4 ,width =0.6, color= uniquefuckingcolors[2], align="center", error_kw=dict(lw=2, capsize=5, capthick=2), label="LTE+Percept")
+ax3.bar(np.arange(1)+1.2,means_Percept_200_4, yerr=yerr_Percept_200_4 ,width =0.6, color= uniquefuckingcolors[2], align="center", error_kw=dict(lw=2, capsize=5, capthick=2), label="LTE+Percept")
 #8 UAV-BS
 ax3.bar(np.arange(1)+3,means_LTE_200, yerr=yerr_LTE_200 ,width =0.6, color= uniquefuckingcolors[0], align="center", error_kw=dict(lw=2, capsize=5, capthick=2))
 ax3.bar(np.arange(1)+3.6,means_UOS_200_8, yerr=yerr_UOS_200_8 ,width =0.6, color= uniquefuckingcolors[1], align="center",error_kw=dict(lw=2, capsize=5, capthick=2))
@@ -542,7 +542,7 @@ ax4.legend(handles=[LTE_Label, UOS_Label, PERCEPT_Label])
 #4 UAV-BS
 ax5.bar(np.arange(1),means_LTE_200_SC, yerr=yerr_LTE_200_SC ,width =0.6, color= uniquefuckingcolors[0], align="center", error_kw=dict(lw=2, capsize=5, capthick=2),label="LTE")
 ax5.bar(np.arange(1)+0.6,means_UOS_200_4_SC, yerr=yerr_UOS_200_4_SC ,width =0.6, color= uniquefuckingcolors[1], align="center", error_kw=dict(lw=2, capsize=5, capthick=2), label="LTE+UOS")
-ax5.bar(np.arange(1)+1.2,means_Percept_100_4_SC, yerr=yerr_Percept_100_4_SC ,width =0.6, color= uniquefuckingcolors[2], align="center", error_kw=dict(lw=2, capsize=5, capthick=2), label="LTE+Percept")
+ax5.bar(np.arange(1)+1.2,means_Percept_200_4_SC, yerr=yerr_Percept_200_4_SC ,width =0.6, color= uniquefuckingcolors[2], align="center", error_kw=dict(lw=2, capsize=5, capthick=2), label="LTE+Percept")
 #8 UAV-BS
 ax5.bar(np.arange(1)+3,means_LTE_200_SC, yerr=yerr_LTE_200_SC ,width =0.6, color= uniquefuckingcolors[0], align="center", error_kw=dict(lw=2, capsize=5, capthick=2))
 ax5.bar(np.arange(1)+3.6,means_UOS_200_8_SC, yerr=yerr_UOS_200_8_SC ,width =0.6, color= uniquefuckingcolors[1], align="center",error_kw=dict(lw=2, capsize=5, capthick=2))
