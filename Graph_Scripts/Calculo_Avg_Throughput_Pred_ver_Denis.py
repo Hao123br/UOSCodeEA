@@ -732,9 +732,9 @@ for i in range(len(means_scenarios)):
         if (i<19):
             ImprovRatio_LTE_vs_UAV_200 = means_LTE_200/means_scenarios[i]
     
-            print("Improvement ratio " + str(scen_comp[i]) +" : "  + str(ImprovRatio_LTE_vs_UAV_100))  # improvement ratio = value after change / value before change
+            print("Improvement ratio " + str(scen_comp[i]) +" : "  + str(ImprovRatio_LTE_vs_UAV_200))  # improvement ratio = value after change / value before change
         
-            print("Improvement %: " + str( 100 * (ImprovRatio_LTE_vs_UAV_100 - 1)) +"%") 
+            print("Improvement %: " + str( 100 * (ImprovRatio_LTE_vs_UAV_200 - 1)) +"%") 
         else:
            ImprovRatio_LTE_vs_UAV_200_SC = means_LTE_200_SC/means_scenarios[i]
            
