@@ -1,5 +1,3 @@
-
-130707
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -25,21 +23,6 @@ import seaborn as sns
 #UABS 6 CellID 10
 #UABS 7 CellID 11
 #UABS 8 CellID 12
-
-# path= '/run/user/1000/gvfs/sftp:host=gercom.ddns.net,port=8372'
-path= ''
-# scenarios_path = [#"/home/emanuel/v2_master_thesis_UOS/100U_LTE_2_UABS/UOSCode/results_thesis",
-# #                  "/home/emanuel/v2_master_thesis_UOS/200U_LTE_2_UABS/UOSCode/results_thesis",
-#                  "/home/emanuel/v2_master_thesis_UOS/100U_LTE_6_UABS/UOSCode/results_thesis/final_graphs", #check 33
-#                  "/home/emanuel/v2_master_thesis_UOS/200U_LTE_6_UABS/UOSCode/results_thesis/final_graphs", #check 33
-#                   "/home/emanuel/v2_master_thesis_UOS/100U_2_enB_6_UABS/UOSCode/results_thesis/final_graphs", #check 33
-#                   "/home/emanuel/v2_master_thesis_UOS/200U_2_enB_6_UABS/UOSCode/results_thesis/final_graphs", #check 33
-#                   "/home/emanuel/IEEE_Article/final_graphs/4enB_6UABS_100U/ueinfo",
-#                  "/home/emanuel/IEEE_Article/final_graphs/4enB_6UABS_200U/ueinfo",
-#                  "/home/emanuel/IEEE_Article/final_graphs/2enB_6UABS_100U/ueinfo",
-#                  "/home/emanuel/IEEE_Article/final_graphs/2enB_6UABS_200U/ueinfo"]
-# #                  "/home/emanuel/v2_master_thesis_UOS/100U_2_enB_6_UABS/UOSCode/results_thesis",
-# #                  "/home/emanuel/v2_master_thesis_UOS/200U_2_enB_6_UABS/UOSCode/results_thesis",
 
 scenarios_path = [                  
                   
@@ -324,79 +307,79 @@ else:
 
 # use a known color palette (see..)
 pal = sns.color_palette("Set2")
-uniquefuckingcolors  = ["#cdd5e4", "#7c7f9e"]
-uniquefuckingcolors_Percept  = ["#45aaf2", "#3867d6"]
+Palette_Colors  = ["#cdd5e4", "#7c7f9e"]
+Palette_Colors_Percept  = ["#45aaf2", "#3867d6"]
 
 # Make the plot
 
 #UOS - 4 UAV-BS - no small cells
 #100 users
-ax2.stackplot(range(0,32),data_to_plot2[0], data_to_plot[0], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors)
+ax2.stackplot(range(0,32),data_to_plot2[0], data_to_plot[0], labels=['TBS','UAV-BS'],colors=Palette_Colors)
 ax2.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax2.legend(loc='lower right')
 ax2.set_title(scen_names_SP[0], fontsize=10)
 #200 users
-ax3.stackplot(range(0,32),data_to_plot2[1], data_to_plot[1], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors)
+ax3.stackplot(range(0,32),data_to_plot2[1], data_to_plot[1], labels=['TBS','UAV-BS'],colors=Palette_Colors)
 ax3.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax3.legend(loc='lower right')
 ax3.set_title(scen_names_SP[1], fontsize=10)
 
 #UOS - 4 UAV-BS - small cells
 #100 users
-ax4.stackplot(range(0,32),data_to_plot2[2], data_to_plot[2], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors)
+ax4.stackplot(range(0,32),data_to_plot2[2], data_to_plot[2], labels=['TBS','UAV-BS'],colors=Palette_Colors)
 ax4.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax4.legend(loc='lower right')
 ax4.set_title(scen_names_SP[2], fontsize=10)
 #200 users
-ax5.stackplot(range(0,32),data_to_plot2[3], data_to_plot[3], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors)
+ax5.stackplot(range(0,32),data_to_plot2[3], data_to_plot[3], labels=['TBS','UAV-BS'],colors=Palette_Colors)
 ax5.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax5.legend(loc='lower right')
 ax5.set_title(scen_names_SP[3], fontsize=10)
 
 #UOS - 8 UAV-BS - no small cells
 #100 users
-ax6.stackplot(range(0,32),data_to_plot2[4], data_to_plot[4], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors)
+ax6.stackplot(range(0,32),data_to_plot2[4], data_to_plot[4], labels=['TBS','UAV-BS'],colors=Palette_Colors)
 ax6.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax6.legend(loc='lower right')
 ax6.set_title(scen_names_SP[4], fontsize=10)
 #200 users
-ax7.stackplot(range(0,32),data_to_plot2[5], data_to_plot[5], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors)
+ax7.stackplot(range(0,32),data_to_plot2[5], data_to_plot[5], labels=['TBS','UAV-BS'],colors=Palette_Colors)
 ax7.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax7.legend(loc='lower right')
 ax7.set_title(scen_names_SP[5], fontsize=10)
 
 #UOS - 8 UAV-BS - small cells
 #100 users
-ax8.stackplot(range(0,32),data_to_plot2[6], data_to_plot[6], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors)
+ax8.stackplot(range(0,32),data_to_plot2[6], data_to_plot[6], labels=['TBS','UAV-BS'],colors=Palette_Colors)
 ax8.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax8.legend(loc='lower right')
 ax8.set_title(scen_names_SP[6], fontsize=10)
 #200 users
-ax9.stackplot(range(0,32),data_to_plot2[7], data_to_plot[7], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors)
+ax9.stackplot(range(0,32),data_to_plot2[7], data_to_plot[7], labels=['TBS','UAV-BS'],colors=Palette_Colors)
 ax9.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax9.legend(loc='lower right')
 ax9.set_title(scen_names_SP[7], fontsize=10)
 
 #UOS - 15 UAV-BS - no small cells
 #100 users
-ax10.stackplot(range(0,32),data_to_plot2[8], data_to_plot[8], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors)
+ax10.stackplot(range(0,32),data_to_plot2[8], data_to_plot[8], labels=['TBS','UAV-BS'],colors=Palette_Colors)
 ax10.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax10.legend(loc='lower right')
 ax10.set_title(scen_names_SP[8], fontsize=10)
 #200 users
-ax11.stackplot(range(0,32),data_to_plot2[9], data_to_plot[9], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors)
+ax11.stackplot(range(0,32),data_to_plot2[9], data_to_plot[9], labels=['TBS','UAV-BS'],colors=Palette_Colors)
 ax11.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax11.legend(loc='lower right')
 ax11.set_title(scen_names_SP[9], fontsize=10)
 
 #UOS - 15 UAV-BS - small cells
 #100 users
-ax12.stackplot(range(0,32),data_to_plot2[10], data_to_plot[10], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors)
+ax12.stackplot(range(0,32),data_to_plot2[10], data_to_plot[10], labels=['TBS','UAV-BS'],colors=Palette_Colors)
 ax12.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax12.legend(loc='lower right')
 ax12.set_title(scen_names_SP[10], fontsize=10)
 #200 users
-ax13.stackplot(range(0,32),data_to_plot2[11], data_to_plot[11], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors)
+ax13.stackplot(range(0,32),data_to_plot2[11], data_to_plot[11], labels=['TBS','UAV-BS'],colors=Palette_Colors)
 ax13.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax13.legend(loc='lower right')
 ax13.set_title(scen_names_SP[11], fontsize=10)
@@ -409,24 +392,24 @@ if (stackplot_full == False):
 
 #Percept - 4 UAV-BS - no small cells
 #100 users
-ax14.stackplot(range(0,32),data_to_plot2[12], data_to_plot[12], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors_Percept)
+ax14.stackplot(range(0,32),data_to_plot2[12], data_to_plot[12], labels=['TBS','UAV-BS'],colors=Palette_Colors_Percept)
 ax14.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax14.legend(loc='lower right')
 ax14.set_title(scen_names_SP[12], fontsize=10)
 #200 users
-ax15.stackplot(range(0,32),data_to_plot2[13], data_to_plot[13], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors_Percept)
+ax15.stackplot(range(0,32),data_to_plot2[13], data_to_plot[13], labels=['TBS','UAV-BS'],colors=Palette_Colors_Percept)
 ax15.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax15.legend(loc='lower right')
 ax15.set_title(scen_names_SP[13], fontsize=10)
 
 #Percept - 4 UAV-BS -  small cells
 #100 users
-ax16.stackplot(range(0,32),data_to_plot2[14], data_to_plot[14], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors_Percept)
+ax16.stackplot(range(0,32),data_to_plot2[14], data_to_plot[14], labels=['TBS','UAV-BS'],colors=Palette_Colors_Percept)
 ax16.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax16.legend(loc='lower right')
 ax16.set_title(scen_names_SP[14], fontsize=10)
 #200 users
-ax17.stackplot(range(0,32),data_to_plot2[15], data_to_plot[15], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors_Percept)
+ax17.stackplot(range(0,32),data_to_plot2[15], data_to_plot[15], labels=['TBS','UAV-BS'],colors=Palette_Colors_Percept)
 ax17.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax17.legend(loc='lower right')
 ax17.set_title(scen_names_SP[15], fontsize=10)
@@ -434,24 +417,24 @@ ax17.set_title(scen_names_SP[15], fontsize=10)
 
 #Percept - 8 UAV-BS - no small cells
 #100 users
-ax18.stackplot(range(0,32),data_to_plot2[16], data_to_plot[16], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors_Percept)
+ax18.stackplot(range(0,32),data_to_plot2[16], data_to_plot[16], labels=['TBS','UAV-BS'],colors=Palette_Colors_Percept)
 ax18.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax18.legend(loc='lower right')
 ax18.set_title(scen_names_SP[16], fontsize=10)
 #200 users
-ax19.stackplot(range(0,32),data_to_plot2[17], data_to_plot[17], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors_Percept)
+ax19.stackplot(range(0,32),data_to_plot2[17], data_to_plot[17], labels=['TBS','UAV-BS'],colors=Palette_Colors_Percept)
 ax19.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax19.legend(loc='lower right')
 ax19.set_title(scen_names_SP[17], fontsize=10)
 
 #Percept - 8 UAV-BS -  small cells
 #100 users
-ax20.stackplot(range(0,32),data_to_plot2[18], data_to_plot[18], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors_Percept)
+ax20.stackplot(range(0,32),data_to_plot2[18], data_to_plot[18], labels=['TBS','UAV-BS'],colors=Palette_Colors_Percept)
 ax20.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax20.legend(loc='lower right')
 ax20.set_title(scen_names_SP[18], fontsize=10)
 #200 users
-ax21.stackplot(range(0,32),data_to_plot2[19], data_to_plot[19], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors_Percept)
+ax21.stackplot(range(0,32),data_to_plot2[19], data_to_plot[19], labels=['TBS','UAV-BS'],colors=Palette_Colors_Percept)
 ax21.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax21.legend(loc='lower right')
 ax21.set_title(scen_names_SP[19], fontsize=10)
@@ -459,12 +442,12 @@ ax21.set_title(scen_names_SP[19], fontsize=10)
 
 #Percept - 15 UAV-BS - no small cells
 #100 users
-ax22.stackplot(range(0,32),data_to_plot2[20], data_to_plot[20], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors_Percept)
+ax22.stackplot(range(0,32),data_to_plot2[20], data_to_plot[20], labels=['TBS','UAV-BS'],colors=Palette_Colors_Percept)
 ax22.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax22.legend(loc='lower right')
 ax22.set_title(scen_names_SP[20], fontsize=10)
 #200 users
-ax23.stackplot(range(0,32),data_to_plot2[21], data_to_plot[21], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors_Percept)
+ax23.stackplot(range(0,32),data_to_plot2[21], data_to_plot[21], labels=['TBS','UAV-BS'],colors=Palette_Colors_Percept)
 ax23.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax23.legend(loc='lower right')
 ax23.set_title(scen_names_SP[21], fontsize=10)
@@ -472,12 +455,12 @@ ax23.set_title(scen_names_SP[21], fontsize=10)
 #Percept - 15 UAV-BS -  small cells
 #100 users
 ax24.set(ylim=(25, 100), xlim=(0, 33))
-ax24.stackplot(range(0,32),data_to_plot2[22], data_to_plot[22], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors_Percept)
+ax24.stackplot(range(0,32),data_to_plot2[22], data_to_plot[22], labels=['TBS','UAV-BS'],colors=Palette_Colors_Percept)
 ax24.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax24.legend(loc='lower right')
 ax24.set_title(scen_names_SP[22], fontsize=10)
 #200 users
-ax25.stackplot(range(0,32),data_to_plot2[23], data_to_plot[23], labels=['TBS','UAV-BS'],colors=uniquefuckingcolors_Percept)
+ax25.stackplot(range(0,32),data_to_plot2[23], data_to_plot[23], labels=['TBS','UAV-BS'],colors=Palette_Colors_Percept)
 ax25.set(xlabel='No. Simulations', ylabel='User Attended (%)')
 ax25.legend(loc='lower right')
 ax25.set_title(scen_names_SP[23], fontsize=10)
