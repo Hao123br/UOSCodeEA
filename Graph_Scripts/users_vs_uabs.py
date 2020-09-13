@@ -24,6 +24,9 @@ import seaborn as sns
 #UABS 7 CellID 11
 #UABS 8 CellID 12
 
+# path= '/run/user/1000/gvfs/sftp:host=gercom.ddns.net,port=8372'
+path= ''
+
 scenarios_path = [                  
                   
                   '/home/emanuel/Desktop/IEEE_Article/Sera_el_final_o_no/No_Small_Cells/LTE_and_UOS/UOS/4enB_4UABS_100U/',
