@@ -488,7 +488,7 @@ ax2.bar(np.arange(1)+7.2,means_Percept_100_8_SC, yerr=yerr_Percept_100_8_SC ,wid
 
 ax2.set_xticks([0.6,3.6,6.6])
 ax2.set_xticklabels([100,200,300],fontsize=14)
-ax2.set(xlabel='Number of Users \n 8 UAV-BS', ylabel='Jitter (ms)')
+ax2.set(xlabel='Number of Users', ylabel='Jitter (ms)')
 ax2.xaxis.get_label().set_fontsize(14)
 ax2.yaxis.get_label().set_fontsize(14)
 # ax2.set_title("4 TBS + No Small Cells \n 100 Users", fontsize=16)
@@ -517,7 +517,7 @@ ax3.bar(np.arange(1)+10.2,means_Percept_200_8_SC, yerr=yerr_Percept_200_8_SC ,wi
 
 ax3.set_xticks([0.6,3.6,6.6,9.6])
 ax3.set_xticklabels([100,200,300,400],fontsize=14)
-ax3.set(xlabel='Number of Users \n 8 UAV-BS', ylabel='Jitter (ms)')
+ax3.set(xlabel='Number of Users', ylabel='Jitter (ms)')
 ax3.xaxis.get_label().set_fontsize(14)
 ax3.yaxis.get_label().set_fontsize(14)
 # ax3.set_title("4 TBS + No Small Cells \n 200 Users", fontsize=16)
