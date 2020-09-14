@@ -73,7 +73,7 @@ for i in range(0,No_scenarios):
     #get the path of all Qty files in this scenario
     files = glob.glob(prefix + scenario + 'Qty_UE_SINR*')
     print('y{}: {}'.format(i+1,len(files)))
-    #interate through each Qty file path
+    #iterate through each Qty file path
     for data_path in files:
         data = open(data_path, 'r')
         for line in data:
@@ -99,22 +99,21 @@ ax2=plt.subplot(4,2,2)
 ax3=plt.subplot(4,2,3)
 ax4=plt.subplot(4,2,4)
 
-#Color palette used in master thesis
-#uniquefuckingcolors  = ['#cdd5e4', '#7c7f9e']
-uniquefuckingcolors  = ["#cdd5e4", "#7c7f9e", "#3c4563","#a55eea","#8854d0","#26de81","#20bf6b"]
-uniquefuckingcolors  = ["#eb3b5a", "#7c7f9e", "#3c4563","#a55eea","#8854d0","#26de81","#20bf6b"] #with LTE red
+#Color palette
+# Palette_Colors  = ["#cdd5e4", "#7c7f9e", "#3c4563","#a55eea","#8854d0","#26de81","#20bf6b"]
+Palette_Colors  = ["#eb3b5a", "#7c7f9e", "#3c4563","#a55eea","#8854d0","#26de81","#20bf6b"] #with LTE red
 
 legends = []
 # multiple line plot
 ax1.set(ylim=(0,20), xlim=(5, 95))
 
-ax1.plot( 'x', 'y1', '', data=df, marker='', color= uniquefuckingcolors[0], linewidth=2,linestyle='dashed', label='LTE') #100U-2eNBs-noUABS
-ax1.plot( 'x', 'y2', '', data=df, marker='', color= uniquefuckingcolors[1], linewidth=2,label='LTE + UOS 4 UAV-BS') #100U-2eNBs-6UABS
-ax1.plot( 'x', 'y3', '', data=df, marker='', color= uniquefuckingcolors[2], linewidth=2,label='LTE + Percept 4 UAV-BS') #PERCEPT SCENARIO
-ax1.plot( 'x', 'y4', '', data=df, marker='', color= uniquefuckingcolors[3], linewidth=2,label='LTE + UOS 8 UAV-BS') #100U-2eNBs-6UABS
-ax1.plot( 'x', 'y5', '', data=df, marker='', color= uniquefuckingcolors[4], linewidth=2,label='LTE + Percept 8 UAV-BS') #PERCEPT SCENARIO
-ax1.plot( 'x', 'y6', '', data=df, marker='', color= uniquefuckingcolors[5], linewidth=2,label='LTE + UOS 15 UAV-BS') #100U-2eNBs-6UABS
-ax1.plot( 'x', 'y7', '', data=df, marker='', color= uniquefuckingcolors[6], linewidth=2,label='LTE + Percept 15 UAV-BS') #PERCEPT SCENARIO
+ax1.plot( 'x', 'y1', '', data=df, marker='', color= Palette_Colors[0], linewidth=2,linestyle='dashed', label='LTE') #100U-2eNBs-noUABS
+ax1.plot( 'x', 'y2', '', data=df, marker='', color= Palette_Colors[1], linewidth=2,label='LTE + UOS 4 UAV-BS') #100U-2eNBs-6UABS
+ax1.plot( 'x', 'y3', '', data=df, marker='', color= Palette_Colors[2], linewidth=2,label='LTE + Percept 4 UAV-BS') #PERCEPT SCENARIO
+ax1.plot( 'x', 'y4', '', data=df, marker='', color= Palette_Colors[3], linewidth=2,label='LTE + UOS 8 UAV-BS') #100U-2eNBs-6UABS
+ax1.plot( 'x', 'y5', '', data=df, marker='', color= Palette_Colors[4], linewidth=2,label='LTE + Percept 8 UAV-BS') #PERCEPT SCENARIO
+ax1.plot( 'x', 'y6', '', data=df, marker='', color= Palette_Colors[5], linewidth=2,label='LTE + UOS 15 UAV-BS') #100U-2eNBs-6UABS
+ax1.plot( 'x', 'y7', '', data=df, marker='', color= Palette_Colors[6], linewidth=2,label='LTE + Percept 15 UAV-BS') #PERCEPT SCENARIO
 ax1.set(xlabel='Simulation time (s)', ylabel='Number of UEs')
 ax1.xaxis.get_label().set_fontsize(14)
 ax1.yaxis.get_label().set_fontsize(14)
@@ -123,13 +122,13 @@ legends.append(ax1.legend(loc='upper center',bbox_to_anchor=(0.5, 0.97), ncol=2)
 ax1.set_title('100 Users | No Small Cells',fontsize=14)
 
 ax2.set(ylim=(0, 20), xlim=(5, 95))
-ax2.plot( 'x', 'y8', '', data=df, marker='', color=uniquefuckingcolors[0], linewidth=2,linestyle='dashed', label='LTE') #200U-2eNBs-noUABS
-ax2.plot( 'x', 'y9', '', data=df, marker='', color= uniquefuckingcolors[1], linewidth=2,label='LTE + UOS 4 UAV-BS') #200U-2eNBs-6UABS
-ax2.plot( 'x', 'y10', '', data=df, marker='', color= uniquefuckingcolors[2], linewidth=2,label='LTE + Percept 4 UAB-BS') #PERCEPT SCENARIO
-ax2.plot( 'x', 'y11', '', data=df, marker='', color= uniquefuckingcolors[3], linewidth=2,label='LTE + UOS 8 UAV-BS') #200U-2eNBs-6UABS
-ax2.plot( 'x', 'y12', '', data=df, marker='', color= uniquefuckingcolors[4], linewidth=2,label='LTE + Percept 8 UAB-BS') #PERCEPT SCENARIO
-ax2.plot( 'x', 'y13', '', data=df, marker='', color= uniquefuckingcolors[5], linewidth=2,label='LTE + UOS 15 UAV-BS') #200U-2eNBs-6UABS
-ax2.plot( 'x', 'y14', '', data=df, marker='', color= uniquefuckingcolors[6], linewidth=2,label='LTE + Percept 15 UAB-BS') #PERCEPT SCENARIO
+ax2.plot( 'x', 'y8', '', data=df, marker='', color=Palette_Colors[0], linewidth=2,linestyle='dashed', label='LTE') #200U-2eNBs-noUABS
+ax2.plot( 'x', 'y9', '', data=df, marker='', color= Palette_Colors[1], linewidth=2,label='LTE + UOS 4 UAV-BS') #200U-2eNBs-6UABS
+ax2.plot( 'x', 'y10', '', data=df, marker='', color= Palette_Colors[2], linewidth=2,label='LTE + Percept 4 UAB-BS') #PERCEPT SCENARIO
+ax2.plot( 'x', 'y11', '', data=df, marker='', color= Palette_Colors[3], linewidth=2,label='LTE + UOS 8 UAV-BS') #200U-2eNBs-6UABS
+ax2.plot( 'x', 'y12', '', data=df, marker='', color= Palette_Colors[4], linewidth=2,label='LTE + Percept 8 UAB-BS') #PERCEPT SCENARIO
+ax2.plot( 'x', 'y13', '', data=df, marker='', color= Palette_Colors[5], linewidth=2,label='LTE + UOS 15 UAV-BS') #200U-2eNBs-6UABS
+ax2.plot( 'x', 'y14', '', data=df, marker='', color= Palette_Colors[6], linewidth=2,label='LTE + Percept 15 UAB-BS') #PERCEPT SCENARIO
 ax2.set(xlabel='Simulation time (s)', ylabel='Number of UEs')
 ax2.xaxis.get_label().set_fontsize(14)
 ax2.yaxis.get_label().set_fontsize(14)
@@ -138,13 +137,13 @@ legends.append(ax2.legend(loc='upper center',bbox_to_anchor=(0.5, 0.97), ncol=2)
 ax2.set_title('200 Users | No Small Cells',fontsize=14)
 
 ax3.set(ylim=(0, 20),xlim=(5, 95))
-ax3.plot( 'x', 'y15', '', data=df, marker='', color=uniquefuckingcolors[0], linewidth=2,linestyle='dashed', label='LTE') #100U-4eNBs-noUABS
-ax3.plot( 'x', 'y16', '', data=df, marker='', color= uniquefuckingcolors[1], linewidth=2,label='LTE + UOS 4 UAV-BS') #100U-4eNBs-6UABS
-ax3.plot( 'x', 'y17', '', data=df, marker='', color= uniquefuckingcolors[2], linewidth=2,label='LTE + Percept 4 UAV-BS') #PERCEPT SCENARIO
-ax3.plot( 'x', 'y18', '', data=df, marker='', color= uniquefuckingcolors[3], linewidth=2,label='LTE + UOS 8 UAV-BS') #100U-4eNBs-6UABS
-ax3.plot( 'x', 'y19', '', data=df, marker='', color= uniquefuckingcolors[4], linewidth=2,label='LTE + Percept 8 UAV-BS') #PERCEPT SCENARIO
-ax3.plot( 'x', 'y20', '', data=df, marker='', color= uniquefuckingcolors[5], linewidth=2,label='LTE + UOS 15 UAV-BS') #100U-4eNBs-6UABS
-ax3.plot( 'x', 'y21', '', data=df, marker='', color= uniquefuckingcolors[6], linewidth=2,label='LTE + Percept 15 UAV-BS') #PERCEPT SCENARIO
+ax3.plot( 'x', 'y15', '', data=df, marker='', color=Palette_Colors[0], linewidth=2,linestyle='dashed', label='LTE') #100U-4eNBs-noUABS
+ax3.plot( 'x', 'y16', '', data=df, marker='', color= Palette_Colors[1], linewidth=2,label='LTE + UOS 4 UAV-BS') #100U-4eNBs-6UABS
+ax3.plot( 'x', 'y17', '', data=df, marker='', color= Palette_Colors[2], linewidth=2,label='LTE + Percept 4 UAV-BS') #PERCEPT SCENARIO
+ax3.plot( 'x', 'y18', '', data=df, marker='', color= Palette_Colors[3], linewidth=2,label='LTE + UOS 8 UAV-BS') #100U-4eNBs-6UABS
+ax3.plot( 'x', 'y19', '', data=df, marker='', color= Palette_Colors[4], linewidth=2,label='LTE + Percept 8 UAV-BS') #PERCEPT SCENARIO
+ax3.plot( 'x', 'y20', '', data=df, marker='', color= Palette_Colors[5], linewidth=2,label='LTE + UOS 15 UAV-BS') #100U-4eNBs-6UABS
+ax3.plot( 'x', 'y21', '', data=df, marker='', color= Palette_Colors[6], linewidth=2,label='LTE + Percept 15 UAV-BS') #PERCEPT SCENARIO
 ax3.set(xlabel='Simulation time (s)', ylabel='Number of UEs')
 ax3.xaxis.get_label().set_fontsize(14)
 ax3.yaxis.get_label().set_fontsize(14)
@@ -153,13 +152,13 @@ legends.append(ax3.legend(loc='upper center',bbox_to_anchor=(0.5, 0.97), ncol=2)
 ax3.set_title('100 Users | Small Cells',fontsize=14)
 
 ax4.set(ylim=(0, 20), xlim=(5, 95))
-ax4.plot( 'x', 'y22', '', data=df, marker='', color=uniquefuckingcolors[0], linewidth=2,linestyle='dashed', label='LTE') #200U-4eNBs-noUABS
-ax4.plot( 'x', 'y23', '', data=df, marker='', color= uniquefuckingcolors[1], linewidth=2,label='LTE + UOS 4 UAV-BS') #200U-4eNBs-6UABS
-ax4.plot( 'x', 'y24', '', data=df, marker='', color= uniquefuckingcolors[2], linewidth=2,label='LTE + Percept 4 UAV-BS') #PERCEPT SCENARIO
-ax4.plot( 'x', 'y25', '', data=df, marker='', color= uniquefuckingcolors[3], linewidth=2,label='LTE + UOS 8 UAV-BS') #200U-4eNBs-6UABS
-ax4.plot( 'x', 'y26', '', data=df, marker='', color= uniquefuckingcolors[4], linewidth=2,label='LTE + Percept 8 UAV-BS') #PERCEPT SCENARIO
-ax4.plot( 'x', 'y27', '', data=df, marker='', color= uniquefuckingcolors[5], linewidth=2,label='LTE + UOS 15 UAV-BS') #200U-4eNBs-6UABS
-ax4.plot( 'x', 'y28', '', data=df, marker='', color= uniquefuckingcolors[6], linewidth=2,label='LTE + Percept 15 UAV-BS') #PERCEPT SCENARIO
+ax4.plot( 'x', 'y22', '', data=df, marker='', color=Palette_Colors[0], linewidth=2,linestyle='dashed', label='LTE') #200U-4eNBs-noUABS
+ax4.plot( 'x', 'y23', '', data=df, marker='', color= Palette_Colors[1], linewidth=2,label='LTE + UOS 4 UAV-BS') #200U-4eNBs-6UABS
+ax4.plot( 'x', 'y24', '', data=df, marker='', color= Palette_Colors[2], linewidth=2,label='LTE + Percept 4 UAV-BS') #PERCEPT SCENARIO
+ax4.plot( 'x', 'y25', '', data=df, marker='', color= Palette_Colors[3], linewidth=2,label='LTE + UOS 8 UAV-BS') #200U-4eNBs-6UABS
+ax4.plot( 'x', 'y26', '', data=df, marker='', color= Palette_Colors[4], linewidth=2,label='LTE + Percept 8 UAV-BS') #PERCEPT SCENARIO
+ax4.plot( 'x', 'y27', '', data=df, marker='', color= Palette_Colors[5], linewidth=2,label='LTE + UOS 15 UAV-BS') #200U-4eNBs-6UABS
+ax4.plot( 'x', 'y28', '', data=df, marker='', color= Palette_Colors[6], linewidth=2,label='LTE + Percept 15 UAV-BS') #PERCEPT SCENARIO
 ax4.set(xlabel='Simulation time (s)', ylabel='Number of UEs')
 ax4.xaxis.get_label().set_fontsize(14)
 ax4.yaxis.get_label().set_fontsize(14)
