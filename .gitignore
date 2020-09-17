@@ -38,3 +38,5 @@ Jitter.plt
 PDR.plt
 PLR.plt
 Throughput.plt
+
+Graph_Scripts/*.pdf
