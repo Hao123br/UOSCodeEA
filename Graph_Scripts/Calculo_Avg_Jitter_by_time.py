@@ -97,7 +97,7 @@ data_dict = dict()
 for scenario_number in range(0,No_scenarios):
     algo, nUABS, nUE = getScenarioParameters(scenarios_path[scenario_number])
     scenario = prefix + root_path + scenarios_path[scenario_number]
-    plts = glob.glob(scenario + 'PDR.plt')
+    plts = glob.glob(scenario + 'Jitter.plt')
     No_runs = len(plts)
     data = []
     #print('y{}: {} {}'.format(scenario_number+1, scenarios_path[scenario_number], No_runs))
@@ -126,36 +126,36 @@ time_limit = data_dict['time'][-1]
 
 #---------------------100 Users SMALL CELLS------------------------------
 ax1.set(xlim=(0,time_limit))
-ax1.set(xlabel='Simulation time (s)', ylabel='PDR (%)')
+ax1.set(xlabel='Simulation time (s)', ylabel='Jitter (ms)')
 ax1.xaxis.get_label().set_fontsize(14)
 ax1.yaxis.get_label().set_fontsize(14)
 ax1.plot( 'time', 'y1', '', data=df, marker='', color= uniquefuckingcolors[0], linewidth=2,linestyle='dashed', label='LTE')
 ax1.plot( 'time', 'y2', '', data=df, marker='', color= uniquefuckingcolors[1], linewidth=2,label='LTE + UOS')
 ax1.plot( 'time', 'y3', '', data=df, marker='', color= uniquefuckingcolors[2], linewidth=2,label='LTE + Percept')
 # legends.append(ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=2))
-legends.append(ax1.legend(loc='upper center',bbox_to_anchor=(0.5, 0.15), ncol=2))
+legends.append(ax1.legend(loc='upper center',bbox_to_anchor=(0.5, 1), ncol=2))
 
 #---------------------200 Users SMALL CELLS------------------------------
 ax2.set(xlim=(0,time_limit))
-ax2.set(xlabel='Simulation time (s)', ylabel='PDR (%)')
+ax2.set(xlabel='Simulation time (s)', ylabel='Jitter (ms)')
 ax2.xaxis.get_label().set_fontsize(14)
 ax2.yaxis.get_label().set_fontsize(14)
 ax2.plot( 'time', 'y4', '', data=df, marker='', color= uniquefuckingcolors[0], linewidth=2,linestyle='dashed', label='LTE')
 ax2.plot( 'time', 'y5', '', data=df, marker='', color= uniquefuckingcolors[1], linewidth=2,label='LTE + UOS')
 ax2.plot( 'time', 'y6', '', data=df, marker='', color= uniquefuckingcolors[2], linewidth=2,label='LTE + Percept')
 # legends.append(ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=2))
-legends.append(ax2.legend(loc='upper center',bbox_to_anchor=(0.5, 0.15), ncol=2))
+legends.append(ax2.legend(loc='upper center',bbox_to_anchor=(0.5, 1), ncol=2))
 
 #---------------------300 Users SMALL CELLS------------------------------
 ax3.set(xlim=(0,time_limit))
-ax3.set(xlabel='Simulation time (s)', ylabel='PDR (%)')
+ax3.set(xlabel='Simulation time (s)', ylabel='Jitter (ms)')
 ax3.xaxis.get_label().set_fontsize(14)
 ax3.yaxis.get_label().set_fontsize(14)
 ax3.plot( 'time', 'y7', '', data=df, marker='', color=uniquefuckingcolors[0], linewidth=2,linestyle='dashed', label='LTE')
 ax3.plot( 'time', 'y8', '', data=df, marker='', color= uniquefuckingcolors[1], linewidth=2,label='LTE + UOS')
 ax3.plot( 'time', 'y9', '', data=df, marker='', color= uniquefuckingcolors[2], linewidth=2,label='LTE + Percept')
 # legends.append(ax3.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=2))
-legends.append(ax3.legend(loc='upper center',bbox_to_anchor=(0.5, 0.15), ncol=2))
+legends.append(ax3.legend(loc='upper center',bbox_to_anchor=(0.5, 1), ncol=2))
 
 
 #plt.ylabel('Number of UEs')
@@ -165,13 +165,13 @@ legends.append(ax3.legend(loc='upper center',bbox_to_anchor=(0.5, 0.15), ncol=2)
 fig.subplots_adjust(right=1.95, top=4.0, hspace=0.3)
 # plt.subplots_adjust(right=1.5, top=2.25, hspace=0.3)
 # plt.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.25, wspace=0.35)
-fig.savefig('lineplot_PDR.pdf', dpi=1000, bbox_inches='tight', bbox_extra_artists=legends)
+fig.savefig('lineplot_Jitter.pdf', dpi=1000, bbox_inches='tight', bbox_extra_artists=legends)
 
 extent = ax1.get_tightbbox(fig.canvas.renderer).transformed(fig.dpi_scale_trans.inverted())
-fig.savefig('lineplot_PDR_100U.pdf', bbox_inches=extent.expanded(1.02, 1.05))
+fig.savefig('lineplot_Jitter_100U.pdf', bbox_inches=extent.expanded(1.02, 1.05))
 
 extent = ax2.get_tightbbox(fig.canvas.renderer).transformed(fig.dpi_scale_trans.inverted())
-fig.savefig('lineplot_PDR_200U.pdf', bbox_inches=extent.expanded(1.02, 1.05))
+fig.savefig('lineplot_Jitter_200U.pdf', bbox_inches=extent.expanded(1.02, 1.05))
 
 extent = ax3.get_tightbbox(fig.canvas.renderer).transformed(fig.dpi_scale_trans.inverted())
-fig.savefig('lineplot_PDR_300U.pdf', bbox_inches=extent.expanded(1.02, 1.05))
+fig.savefig('lineplot_Jitter_300U.pdf', bbox_inches=extent.expanded(1.02, 1.05))

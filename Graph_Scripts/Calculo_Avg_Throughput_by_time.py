@@ -97,7 +97,7 @@ data_dict = dict()
 for scenario_number in range(0,No_scenarios):
     algo, nUABS, nUE = getScenarioParameters(scenarios_path[scenario_number])
     scenario = prefix + root_path + scenarios_path[scenario_number]
-    plts = glob.glob(scenario + 'PDR.plt')
+    plts = glob.glob(scenario + 'Throughput.plt')
     No_runs = len(plts)
     data = []
     #print('y{}: {} {}'.format(scenario_number+1, scenarios_path[scenario_number], No_runs))
@@ -107,7 +107,7 @@ for scenario_number in range(0,No_scenarios):
         data.extend(list((int(run_number), int(time), float(Throughput)) for time, Throughput in csv.reader(csv_data, delimiter= ' ')))
     data = np.array(data)
     run, time,Throughput = data.T
-    mean_by_time = timeMean(No_runs, time, Throughput)
+    mean_by_time = timeMean(No_runs, time, Throughput/1024)
     data_dict['y{0}'.format(scenario_number+1)] = list(mean_by_time.values())
 data_dict['time'] = list(mean_by_time)
 
@@ -126,7 +126,7 @@ time_limit = data_dict['time'][-1]
 
 #---------------------100 Users SMALL CELLS------------------------------
 ax1.set(xlim=(0,time_limit))
-ax1.set(xlabel='Simulation time (s)', ylabel='PDR (%)')
+ax1.set(xlabel='Simulation time (s)', ylabel='Throughput (Mbps)')
 ax1.xaxis.get_label().set_fontsize(14)
 ax1.yaxis.get_label().set_fontsize(14)
 ax1.plot( 'time', 'y1', '', data=df, marker='', color= uniquefuckingcolors[0], linewidth=2,linestyle='dashed', label='LTE')
@@ -137,7 +137,7 @@ legends.append(ax1.legend(loc='upper center',bbox_to_anchor=(0.5, 0.15), ncol=2)
 
 #---------------------200 Users SMALL CELLS------------------------------
 ax2.set(xlim=(0,time_limit))
-ax2.set(xlabel='Simulation time (s)', ylabel='PDR (%)')
+ax2.set(xlabel='Simulation time (s)', ylabel='Throughput (Mbps)')
 ax2.xaxis.get_label().set_fontsize(14)
 ax2.yaxis.get_label().set_fontsize(14)
 ax2.plot( 'time', 'y4', '', data=df, marker='', color= uniquefuckingcolors[0], linewidth=2,linestyle='dashed', label='LTE')
@@ -148,7 +148,7 @@ legends.append(ax2.legend(loc='upper center',bbox_to_anchor=(0.5, 0.15), ncol=2)
 
 #---------------------300 Users SMALL CELLS------------------------------
 ax3.set(xlim=(0,time_limit))
-ax3.set(xlabel='Simulation time (s)', ylabel='PDR (%)')
+ax3.set(xlabel='Simulation time (s)', ylabel='Throughput (Mbps)')
 ax3.xaxis.get_label().set_fontsize(14)
 ax3.yaxis.get_label().set_fontsize(14)
 ax3.plot( 'time', 'y7', '', data=df, marker='', color=uniquefuckingcolors[0], linewidth=2,linestyle='dashed', label='LTE')
@@ -165,13 +165,13 @@ legends.append(ax3.legend(loc='upper center',bbox_to_anchor=(0.5, 0.15), ncol=2)
 fig.subplots_adjust(right=1.95, top=4.0, hspace=0.3)
 # plt.subplots_adjust(right=1.5, top=2.25, hspace=0.3)
 # plt.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.25, wspace=0.35)
-fig.savefig('lineplot_PDR.pdf', dpi=1000, bbox_inches='tight', bbox_extra_artists=legends)
+fig.savefig('lineplot_Throughput.pdf', dpi=1000, bbox_inches='tight', bbox_extra_artists=legends)
 
 extent = ax1.get_tightbbox(fig.canvas.renderer).transformed(fig.dpi_scale_trans.inverted())
-fig.savefig('lineplot_PDR_100U.pdf', bbox_inches=extent.expanded(1.02, 1.05))
+fig.savefig('lineplot_Throughput_100U.pdf', bbox_inches=extent.expanded(1.02, 1.05))
 
 extent = ax2.get_tightbbox(fig.canvas.renderer).transformed(fig.dpi_scale_trans.inverted())
-fig.savefig('lineplot_PDR_200U.pdf', bbox_inches=extent.expanded(1.02, 1.05))
+fig.savefig('lineplot_Throughput_200U.pdf', bbox_inches=extent.expanded(1.02, 1.05))
 
 extent = ax3.get_tightbbox(fig.canvas.renderer).transformed(fig.dpi_scale_trans.inverted())
-fig.savefig('lineplot_PDR_300U.pdf', bbox_inches=extent.expanded(1.02, 1.05))
+fig.savefig('lineplot_Throughput_300U.pdf', bbox_inches=extent.expanded(1.02, 1.05))
