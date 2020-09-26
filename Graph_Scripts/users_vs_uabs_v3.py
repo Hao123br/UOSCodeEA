@@ -61,8 +61,14 @@ uabs = np.zeros((4,33))
 data_to_plot = [None] * No_scenarios
 data_to_plot2 = [None] * No_scenarios
 data_to_plot3 = [None] * No_scenarios
+data_to_plot4= [None] * No_scenarios
+data_dict = dict()
+# data_dict['x'] = [x*5 for x in range(1,20)]
 
 for j in range(0,No_scenarios):
+    qtyusersconnected_vs_time = dict()
+    mean_by_time = []
+    # lenth_file= []
     for i in range(0,29):
 
         info_users_UABS = pd.read_csv(path + scenarios_path[j] +'UE_info_UABS.~{0}~'.format(i),names=["Time","UE_ID","Cell_ID","sinr_db"])
@@ -84,14 +90,35 @@ for j in range(0,No_scenarios):
         uabs[1,i] = uabs_served
         uabs[2,i] = percent_user_enB
         uabs[3,i] = Users_Connected_UABS['UE_ID']
-        # print(uabs[3,i])
 
-
-#        print(uabs.mean(axis=1))
         data_to_plot[j] = uabs[0]*100
         data_to_plot2[j] = 100-(uabs[0]*100)
         data_to_plot3[j] = uabs[3]*1
-
+        
+    #     users_connected_count = 0
+    #     # ue_id = 0
+    #     for t in info_users_UABS.index:
+           
+    #         if info_users_UABS['Cell_ID'][t] > 12: # and info_users_UABS['UE_ID'][t] != ue_id:          #verificar esto que creo que ta mal      
+                
+    #             users_connected_count+=1  #verificar este conteo
+    #             # ue_id = info_users_UABS['UE_ID'][t]
+    
+    #             if int(info_users_UABS['Time'][t]) in qtyusersconnected_vs_time:
+                    
+    #                 qtyusersconnected_vs_time[int(info_users_UABS['Time'][t])] = qtyusersconnected_vs_time[int(info_users_UABS['Time'][t])] + users_connected_count 
+    #                 users_connected_count=0
+    #             else:
+    #                 qtyusersconnected_vs_time[int(info_users_UABS['Time'][t])] =  users_connected_count 
+    #                 users_connected_count=0
+    #     lenth_file[i] = len(info_users_UABS)           
+        
+    # for users_sum in qtyusersconnected_vs_time.values():
+    #     # mean_by_time.append(users_sum/29) #debe dividir por la cantidad de rodadas, en este caso 29.
+    #     mean_by_time.append(users_sum/ (len(info_users_UABS.index)))
+    # data_dict['x'] = [x for x in qtyusersconnected_vs_time.keys()]
+    # data_dict['y{0}'.format(i+1)] = mean_by_time
+    # data_to_plot4[j] = data_dict
 
 
 #//-----------------Statistics Mean Percent Offloaded UOS and Percept---------------\\
@@ -163,7 +190,7 @@ plt.savefig("Boxplot_Users_perc_UABS_UOS_PERCEPT.pdf", format='pdf', dpi=1000)
 #//------------------BarPlot for average users connected with UAV-BS ------------------\\
 
 # Create a figure instance
-fig3 = plt.figure(2, figsize=(12, 6))
+fig3 = plt.figure(2, figsize=(11, 6))
 
 Color_Pal  = ["#cdd5e4", "#7c7f9e", "#3c4563","#a55eea","#8854d0"]
 UOS_Label = mpatches.Patch(color=Color_Pal[1], label='LTE+UOS')
@@ -183,10 +210,11 @@ ax8.bar(np.arange(1)+6,np.mean(data_to_plot3[4]),yerr=mean_confidence_interval(d
 ax8.bar(np.arange(1)+6.6,np.mean(data_to_plot3[5]), yerr=mean_confidence_interval(data_to_plot3[5]) , width =0.6, color= Color_Pal[2], align="center",error_kw=dict(lw=2, capsize=5, capthick=2))
 
 ax8.set_xticks([0.6,3.6,6.6])
-ax8.set_xticklabels([100,200,300],fontsize=14)
+ax8.set_xticklabels([100,200,300],fontsize=20)
 ax8.set(ylabel='Users Attended by UAV-BS', xlabel='Number of Users')
-ax8.xaxis.get_label().set_fontsize(14)
-ax8.yaxis.get_label().set_fontsize(14)
+ax8.xaxis.get_label().set_fontsize(20)
+ax8.yaxis.get_label().set_fontsize(201)
+ax8.set_yticklabels([0,0,10,20,30,40],fontsize=18)
 ax8.grid(color='green',ls = 'dotted')
 # ax8.set_ylim([0,100])
 ax8.legend(handles=[UOS_Label, PERCEPT_Label],fontsize=18)
