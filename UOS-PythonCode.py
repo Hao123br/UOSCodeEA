@@ -31,7 +31,7 @@ def get_cmap(n, name='hsv'):
     RGB color; the keyword argument name must be a standard mpl colormap name.'''
     return plt.cm.get_cmap(name, n)
 
-def DBSCAN_Clusterization(X, EPS, MIN_SAMPLES):
+def DBSCAN_Clusterization(X, EPS, MIN_SAMPLES, QOS):
     
     DBClusters = DBSCAN(eps=EPS, min_samples=MIN_SAMPLES, metric ='euclidean',algorithm = 'auto')#'kd_tree')
     DBClusters.fit(X)
@@ -87,8 +87,11 @@ def DBSCAN_Clusterization(X, EPS, MIN_SAMPLES):
         plt.ylabel('y (meters)', fontsize = 16)
         plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
                   fancybox=True, shadow=True, ncol=5)
-        plt.savefig("Graph_Clustered_UOS_Scenario {}s.pdf".format(simulation_time), format='pdf', dpi=1000)
-        plt.show()      
+        if QOS:
+            plt.savefig("Graph_Clustered_UOS_Scenario_QOS {}s.pdf".format(simulation_time), format='pdf', dpi=1000)
+        else:
+            plt.savefig("Graph_Clustered_UOS_Scenario_SINR {}s.pdf".format(simulation_time), format='pdf', dpi=1000)
+        #plt.show()
     
     return clusters, x_clusters, y_clusters  
 
@@ -220,7 +223,9 @@ with open('UEs_UDP_Throughput') as fUE_QoS:
 x,y,z, cellid= data1.T
 if plot:
     plt.gca().set_aspect('equal', adjustable='box')
-    plt.scatter(x,y,c="blue", label= "TBS", s=13**2)
+    plt.scatter(x[:4],y[:4],c="blue", label= "TBS", s=13**2)
+    plt.scatter(x[4:],y[4:],c="cyan", label= "SC", s=10**2)
+    
 
 #----------Total LTE Users--------------#
 x1,y1,z1= data2.T
@@ -234,6 +239,7 @@ if plot:
 UABSCoordinates = np.array(list(zip(x2,y2)))
 
 #----------Users with Low SINR--------------#
+x3 = []
 if (data4.size != 0):
     x3,y3,z3, sinr, imsi, cellid4= data4.T
     X = np.array(list(zip(x3,y3)))
@@ -243,6 +249,7 @@ if (data4.size != 0):
 #    time, Uabs_Id, Remaining_Energy = data5.T
 
 #----------QoS Parameters--------------#
+x4 = []
 if (data6.size != 0):
     # Normalize throughput, delay and Packet Loss columns
     data6[:,5] = preprocessing.normalize([data6[:,5]])
@@ -270,14 +277,16 @@ if plot:
 eps_low_SINR=int(args.eps_sinr)
 min_samples_low_SINR=2
 if (data4.size != 0):
-    clusters, x_clusters, y_clusters = DBSCAN_Clusterization(X, eps_low_SINR, min_samples_low_SINR)
+    clusters, x_clusters, y_clusters = DBSCAN_Clusterization(X, eps_low_SINR,
+min_samples_low_SINR, False)
 
 
 #---------------Clustering with DBSCAN for Users with Low Throughput---------------------
 eps_low_tp=int(args.eps_qos)
 min_samples_low_tp=2
 if (data6.size != 0):
-    clusters_QoS, x_clusters_QoS, y_clusters_QoS = DBSCAN_Clusterization(X1, eps_low_tp, min_samples_low_tp)
+    clusters_QoS, x_clusters_QoS, y_clusters_QoS = DBSCAN_Clusterization(X1,
+eps_low_tp, min_samples_low_tp, True)
  
 
 #Sum of SINR and mean to later prioritize the clusters
