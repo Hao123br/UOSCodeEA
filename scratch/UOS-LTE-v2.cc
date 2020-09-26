@@ -102,7 +102,7 @@ using namespace ns3;
 using namespace psc; //to use PSC functions
 
 const uint16_t numberOfOverloadUENodes = 0; // user that will be connected to an specific enB. 
-const uint16_t numberOfSmallCellNodes = 8;
+const uint16_t numberOfSmallCellNodes = 9;
 uint16_t numberOfeNodeBNodes = 4;
 uint16_t numberOfUENodes = 100; //Number of user to test: 245, 392, 490 (The number of users and their traffic model follow the parameters recommended by the 3GPP)
 uint16_t numberOfUABS = 6;
@@ -178,11 +178,11 @@ std::vector<Vector> enb_positions {
 	};
 
 std::vector<Vector> sc_positions {
-	Vector( 100, 100 , scHeight),  Vector( 100, 2000 , scHeight),  Vector( 100, 3900 , scHeight),
+	Vector( 300, 3700 , scHeight),  Vector( 2000, 3700 , scHeight), Vector( 3700, 3700 , scHeight),
 
-	Vector( 2000, 100 , scHeight),/*Vector( 2000, 2000 , scHeight),*/Vector( 2000, 3900 , scHeight),
+	Vector( 300, 2000 , scHeight), Vector( 2000, 2000 , scHeight), Vector( 3700, 2000 , scHeight),
 
-	Vector( 3900, 100 , scHeight),  Vector( 3900, 2000 , scHeight),  Vector( 3900, 3900 , scHeight)
+	Vector( 300, 300 , scHeight),  Vector( 2000, 300 , scHeight), Vector( 3700, 300 , scHeight)
 	};
 
 NS_LOG_COMPONENT_DEFINE ("UOSLTE");
